@@ -1,0 +1,418 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Learn Git with beginner to advanced Git tutorials on workflows, git commands, git migration and code review.">
+<meta name="author" content="Atlassian">
+<link rel="canonical" href="https://www.atlassian.com/git"/>
+<title>Kikaha documentation</title>
+<link rel="stylesheet" href="site.css"/>
+<link href="https://fonts.googleapis.com/css?family=Sanchez:200,300,400,600" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Titillium+Web" rel="stylesheet">
+<script src="showdown.min.js">
+<script src="showdown-github.min.js">
+<script>
+
+</script>
+</head>
+<body class="wac git-home git">
+<div class="header">
+  <div class="container">
+    <span class="k">k</span>
+    <h1>Kikaha</h1>
+    <a href="https://blog.kikaha.io">blog</a>
+    <a href="https://github.com/Skullabs/kikaha">source code</a>
+  </div>
+</div>
+
+<div class="page-wrap">
+<div class="home-section home-about home-start">
+<div class="g-row container">
+
+<div class="g-column g-7-12 t-6-12 m-12-12">
+<!-- CONTENT -->
+<h1 id="uroutingapi">uRouting API</h1>
+<p>The uRouting (micro routing) API is a simple routing API in a JAXRS fashion optimized at compile time. It aims to provide a friendly and useful routing mechanism to developers, simplifying the way you used to create RESTFul endpoints with Undertow's API.</p>
+<h2 id="whatisaroute">What is a route?</h2>
+<p>The router is the component that translates each incoming HTTP request to a method call. In this documentation we conventionally call these methods <code>route</code>. The main Kikaha's <strong>micro Routing</strong> mechanism is defined by the <code>kikaha-urouting</code> module, which you can include on your classpath by adding the following snippet on your <code>pom.xml</code> file.</p>
+<pre><code class="xml language-xml">&lt;dependency&gt;
+  &lt;groupId&gt;io.skullabs.kikaha&lt;/groupId&gt;
+  &lt;artifactId&gt;kikaha-urouting&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+<h2 id="whatisthemicroroutingapi">What is the micro Routing API?</h2>
+<p>The <strong>micro Routing</strong> is a <em>compile time generated</em> layer that binds your controller method to the Undertow's low-level API. It means that, under the hood, a class that implements <code>io.undertow.server.HttpHandler</code> is generated to call your <strong>route method</strong>. The micro routing was developed to be simple and with low (or almost no) overhead. Its API was strongly inspired by <strong><a href="http://www.mkyong.com/tutorials/jax-rs-tutorials/">JAX-RS</a></strong>, <strong><a href="https://www.playframework.com">Play Framework</a></strong> and <strong><a href="http://www.scalatra.org">Scalatra</a></strong>, both awesome and powerful technologies that together cover most part of JVM's web developers community.</p>
+<h2 id="writingasimpleroute">Writing a simple route</h2>
+<p>While writing a Kikaha route, you will probably notice that it have a basic structure (a convention) we should follow.</p>
+<pre><code class="java language-java">@HTTP_METHOD @Path( PATH )
+RESPONSE nameOfThisRoute( PARAMETERS ){
+  ...
+}
+</code></pre>
+<p>Where the UPPERCASE words above means:</p>
+<ul>
+<li>HTTP_METHOD: an annotation which represents the HTTP Method you expect this route listen to requests.</li>
+<li>PATH: the path your route will listen to requests.</li>
+<li>PARAMETERS: A list of parameters you will be able to receive from a specific request</li>
+<li>RESPONSE: A object that will be <a href="https://gist.github.com/miere/e0ab26fa3fa9f9d56dbe0c4f6c68149d">serialized and sent as response</a> to the HTTP Client</li>
+</ul>
+<p>Every time you write a uRouting Route, Kikaha will:</p>
+<ul>
+<li>Generate a wrapper class which proxies your code with Undertow's API</li>
+<li>The generated code will check if you are running Blocking operations and take care of all tricky stuffs that would be related to this</li>
+<li>It will also check if you are using Non-Blocking codes, and will generate an optimized code for this kind of requests</li>
+<li>It will ensure you are running your code on a thread-pool for long-lived requests, which allows you to run SQL queries (or other blocking operations) without any worries.</li>
+</ul>
+<p>When you are coding you should also be aware that:</p>
+<ul>
+<li>It is also possible to define a root path for every route method you create on your class annotating the class with a <code>@kikaha.urouting.api.Path</code>.</li>
+<li>The <code>@kikaha.urouting.api.Produces</code> statically defines which is the Content-Type you intent to return</li>
+<li>The <code>@kikaha.urouting.api.Consumes</code> statically defines which is the Content-Type you intent to receive an object from a request</li>
+<li>You can have as many <em>route methods</em> as you want. There is no limitation out-of-box.</li>
+</ul>
+<h2 id="returningaresponse">Returning a response</h2>
+<p>To return a response to the HTTP client you should basically return any object you want on your route method.
+The following code will serialize the <code>User</code> object and send it back to the HTTP Client.</p>
+<pre><code class="java language-java">@POST @Path("users")
+User sendUser(){
+    return new User( "Jay", "Milagroso", 1l );
+}
+</code></pre>
+<p>But, what if you want to send a more specific response, including Cookies or HTTP Headers?
+In this case, you better return any object that implements a specific Response Type Interface <code>kikaha.urouting.api.Response</code>. The <code>kikaha.urouting.api.DefaultResponse</code> has a lot of methods which could helps you on the most common cases. Bellow there's an example that will send the same <code>User</code> object, but including a few headers.</p>
+<pre><code class="java language-java">@POST @Path("users")
+Response sendUser(){
+    return DefaultResponse.ok()
+        .entity( new User( "Jay", "Milagroso", 1l ) )
+        .header( "Access-Control-Allow-Origin", "*" );
+}
+</code></pre>
+<h4 id="notes">Notes:</h4>
+<ul>
+<li>The <code>DefaultResponse</code> is the main implementation of <code>Response</code> interface</li>
+<li>It has some static constructor methods to make development easier</li>
+<li>It allows you to set the <strong>response status code</strong>, <strong>include headers</strong> and <strong>define new cookies</strong>.</li>
+<li>It also allows you to <strong>define the body</strong> and the <strong>content-type</strong> of your response.</li>
+</ul>
+<h2 id="usingthereactiveapi">Using the reactive API</h2>
+<p>Undertow have a very optimized API and one of the reasons it performs so well is because of fact it handles requests in a reactive way, allowing developers to take advantage from modern frameworks which uses Asynchronous APIs. Kikaha have abstracted this behavior on uRouting API through the AsyncResponse object.</p>
+<p>Unlike synchronous routes, asynchronous routes should not have return objects. Also, it expects a special object (AsyncResponse) to be "injected" on the parameter list. Let's see an example:</p>
+<pre><code class="java language-java">@POST @Path("users")
+void sendUser( @Context AsyncResponse asyncResp ){
+    // myAsyncDB is a hypothetical object that retrieves an user asynchronously.
+    myAsyncDB.retrieveUser( user -&gt; {
+        Response resp = DefaultResponse.ok().entity( user ).header( "Access-Control-Allow-Origin", "*" );
+        asyncResp .write( resp )
+    });
+}
+</code></pre>
+<p>As we can see on the above code, it uses <code>AsyncResponse</code> object to send the response once it receives the response from our hypothetical <em>myAsyncDB</em> client.</p>
+<h2 id="whichhttpmethodsyouareabletohandle">Which HTTP methods you are able to handle?</h2>
+<p>The following HTTP methods Kikaha is able to handle:</p>
+<ul>
+<li>GET - <code>kikaha.urouting.api.GET</code></li>
+<li>DELETE - <code>kikaha.urouting.api.DELETE</code></li>
+<li>POST - <code>kikaha.urouting.api.POST</code></li>
+<li>PUT - <code>kikaha.urouting.api.PUT</code></li>
+<li>PATCH - <code>kikaha.urouting.api.PATCH</code></li>
+</ul>
+<h2 id="howcaniconsumethebodyofapostorputrequest">How can I consume the body of a POST or PUT request?</h2>
+<p>The sample bellow shows how is possible to handle a POST/PUT request with micro Routing API.</p>
+<pre><code class="java language-java">public class UserResource {
+
+    // the stored data
+    final Set&lt;User&gt; users = new HashSet&lt;&gt;();
+
+    // handling both PUT and POST to simplify the example
+    @POST @PUT
+    @Path( "users" )
+    @Consumes("application/json")
+    // once it does not return a response, the default response is 204
+    public void addUser( User user ){
+      users.add( user );
+    }
+}
+</code></pre>
+<h4 id="notes-1">Notes</h4>
+<ul>
+<li>The "User" object has no annotation. It will indicates to micro Routing API that it is the representation of the body request.</li>
+<li>You cannot send more than one object to the server as HTTP does not support this behavior.</li>
+</ul>
+<h2 id="receivingargumentsplacedattheuripath">Receiving arguments placed at the URI path</h2>
+<p>Yes, you are able to handle requests in a similar as JAXRS does. Bellow is an example showing how you can retrieve a user by its id. In this case, the id is placed as a <strong>path parameter</strong> inside the URI path you defined at <code>@kikaha.urouting.api.Path</code> annotation.</p>
+<pre><code class="java language-java">public class UserResource {
+
+    // the stored data
+    final Map&lt;Long, User&gt; users = new HasmMap&lt;&gt;();
+
+    @GET
+    @Path( "users/{id}" )
+    @Produces("application/json")
+    public User retrieveUserById( @PathParam("id") Long id ){
+      return users.get( id );
+    }
+}
+</code></pre>
+<h4 id="notes-2">Notes:</h4>
+<ul>
+<li>The <code>@kikaha.urouting.api.PathParam</code> was used to extract the "id" parameter from the path. There is also more information you can retrieve from the request using pre-defined annotation from micro Routing API. Bellow are some examples:</li>
+<li><code>@kikaha.urouting.api.QueryParam( "id" )</code>: Retrieves the sent query parameters named "id"</li>
+<li><code>@kikaha.urouting.api.CookieParam( "SESSION_ID" )</code>: Retrieves the first sent cookie named "SESSION_ID"</li>
+<li><code>@kikaha.urouting.api.HeaderParam( "X-Token" )</code>: Retrieves the first send header named "X-Token".</li>
+<li>You can also <strong>inject arguments from the Request Context</strong> using the <code>@kikaha.urouting.api.Context</code>.</li>
+</ul>
+<h2 id="injectingdependenciesintoroutes">Injecting dependencies into routes</h2>
+<p>All Kikaha's uRouting route is automatically deployed as <strong><a href="doc:dependency-injection.html">an injectable service</a></strong>. In practice, it means that, if you are using the <strong><a href="doc:dependency-injection.html">CDI module</a></strong>, you could inject any dependency through the <code>@javax.inject.Inject</code> annotation, even if you does not annotate the class with the <code>@javax.inject.Singleton</code> annotation.</p>
+<h2 id="injectingargumentsfromrequestcontext">Injecting arguments from Request Context"</h2>
+<p>In every request received Undertow stores the request data (headers, cookies, query parameters, etc) in an instance of <code>HttpServerExchange</code> object. This object was designed to provide any useful data while the request is happening (<em>request context</em> only). You cannot access this informations outside of a request.</p>
+<p>Sometimes you need to extract some meta information from your requests, like Autentication Tokens, the current Logged In user, the current Tenant, etc. It can become a repetitive task if you have many routing endpoints. Kikaha allows developers to inject data retrieved by the <em>request context</em> into your routing methods.</p>
+<pre><code class="java language-java">package sample;
+
+import kikaha.urouting.api.*;
+import io.undertow.security.idm.Account;
+
+public class UserResource {
+
+  @POST
+  public void persistUser( @Context Account account, User user ){
+    // do something with the logged in account
+  }
+}
+</code></pre>
+<p>The above example code shows how is possible to inject the current logged in account in the <code>persistUser</code> method. Note that the <code>@kikaha.urouting.api.Context</code> annotation was used to inject the <code>io.undertow.security.idm.Account</code> object extracted from the Undertow's request context object (HttpServerExchange).</p>
+<p>Out of box, Kikaha allows developers to inject the following data extracted from Request Context:</p>
+<ul>
+<li><code>io.undertow.security.idm.Account</code>: the Undertow implementation of current logged in user</li>
+<li><code>io.undertow.server.HttpServerExchange</code>: the object that contains all data available at  request context</li>
+<li><code>io.undertow.server.handlers.form.FormData</code>: Undertow implementation used to represent a Form Data received by the HTTP client</li>
+<li><code>io.undertow.security.api.SecurityContext</code>: Undertow implementation used to represent the security context from the current request.</li>
+<li><code>kikaha.core.security.SecurityContext</code>: A Kikaha specific implementation of Undertow's <em>io.undertow.security.api.SecurityContext</em>. It has an improved API and offers a more convenient approach to deal with the current session.</li>
+<li><code>kikaha.core.security.Session</code>: The current logged in session. It allows developers to store data into the current session.</li>
+</ul>
+<p>Developers are encouraged to create their own <code>kikaha.urouting.api.ContextProducer</code> every time is needed to inject meta-data received from current request context.</p>
+<pre><code class="java language-java">// TenantContextProducer.java
+package sample;
+
+import kikaha.urouting.api.*;
+import javax.inject.*;
+
+@Singleton
+public class TenantContextProducer implements ContextProducer&lt;Tenant&gt; {
+
+    @Override
+    public Tenant produce( HttpServerExchange exchange ) throws RoutingException {
+            String hostAndPort = exchange.getHostAndPort()
+            return new Tenant( hostAndPort );
+    }
+}
+
+// Tenant.java
+public class Tenant {
+
+    final private String hostAndPort;
+
+    public Tenant( String hostAndPort ){
+      this.hostAndPort = hostAndPort;
+  }
+
+  public String toString(){
+      return hostAndPort;
+  }
+}
+
+// UserResource.java
+@Path("api/users")
+public class UserResource {
+
+    @GET
+  @Path("{userId}")
+  public User retrieveUserById(
+      @Context Tenant tenant, @PathParam("userId") Long id ){
+    // do something
+  }
+}
+</code></pre>
+<p>The above sample implementation shows how is possible to inject a Tenant object (representing which is the tenant of current request) in the routing method. At this example, we are assuming that the Tenant Id is the current sub-domain, like <code>mycustomer.mydomain.com</code>, but it is possible to retrieve this information from dynamic sources like databases or some cache mechanisms like **<a href="hazelcast.html">Hazelcast</a> **.</p>
+<h2 id="handlingfileuploads">Handling File Uploads</h2>
+<p>The sample code bellow shows how to handle an upload request with <em>'multipart/form-data'</em> content type.</p>
+<pre><code class="java language-java">@Path("api/pdf/upload")
+public class PDFUploadResource {
+
+    @MultiPartFormData
+  public void handleUpload( File file ){
+      System.out.println( file.getName() );
+  }
+}
+</code></pre>
+<p>The <em>File file</em> parameter, that represents the uploaded file, can be altogether if other special parameters like <code>@PathParam</code> or <code>@Context</code> annotated attributes.</p>
+<h2 id="handlingexceptions">Handling Exceptions</h2>
+<pre><code class="java language-java">@Singleton
+public class UserService {
+
+  @Inject
+  EntityManager em;
+
+  @GET @Path("users")
+  public Iterable&lt;User&gt; retrieveUsers(){
+    Query query = em.createQuery("SELECT e FROM User e");
+    return (Iterable&lt;User&gt;) query.getResultList();
+  }
+}
+</code></pre>
+<p>Consider the above sample code. The <code>retrieveUsers</code> is a very straightforward method to retrieve all persisted <code>User</code>s found in the database. But, what would happen if the method throws <code>javax.persistence.QueryTimeoutException</code>. You probably will try to handle this exception with a try/catch block. It wouldn't be a big deal until this behavior starts to repeat in every method that uses <code>Query.getResultList()</code> method.</p>
+<p>To avoid repetitive coding style handling exceptions, you can define a global Exception Handler. It allows you to define custom HTTP responses when specific exceptions are thrown. The following sample codes illustrates how to handle the <code>QueryTimeoutException</code>.</p>
+<pre><code class="java language-java">import kikaha.urouting.api.*;
+import javax.inject.*;
+
+@Singleton
+public class QueryTimeoutExceptionHandler
+  implements ExceptionHandler&lt;QueryTimeoutException&gt; {
+
+  public Response handle( QueryTimeoutException cause ){
+    return DefaultResponse.serverError( cause.getMessage() );
+  }
+}
+</code></pre>
+<blockquote>
+  <p>Note that we should make <code>QueryTimeoutExceptionHandler</code> <strong><a href="dependency-injection.html">injectable</a></strong>, in order be automatically discovered by Kikaha's start up routine. That's the reason we put the <code>@Singleton</code> annotation into that class.</p>
+</blockquote>
+<h2 id="handlingcustomcontenttypes">Handling custom Content Types</h2>
+<p>What if you are designing an application that will receive data in an uncommon content-type like CVS or even XLS? Kikaha allows developers to include new mechanisms to handle and write back data in any formats (Content-Type) he needs. These mechanisms are called <strong>Serializers and Unserializers</strong>.</p>
+<h3 id="understandingunserializers">Understanding Unserializers</h3>
+<p><em>Unserializers are mechanisms designed to convert incomming data into another (more useful) format/object.</em> Every time you make a POST request and send an entity as body, Kikaha uses the <em>Content-Type</em> header to detect which <code>Unserializer</code> will handle this request and convert it into an object that represents your sent entity. The bellow code illustrates how you can handle this POST request.</p>
+<pre><code class="java language-java">package sample;
+
+import kikaha.urouting.api.*;
+import javax.inject.*;
+
+@Path("api/users")
+public class User {
+
+    @POST
+  @Consumes( "text/csv" )
+  public void persistUser( User user ){
+    // call user persistence here 
+  }
+}
+</code></pre>
+<p>If the HTTP client which is sending the request informs a Content-Type, it will be used to identify which <code>kikaha.urouting.api.Unserializer</code> implementation will be used to convert the sent data into <code>User</code>. If the Content-Type header is missing, the fallback Content-Type defined by the <code>@Consumes</code> annotation will be used.</p>
+<p>Out-of-box, Kikaha only supports PLAIN TEXT Content-Types. There is a module called <code>kikaha-urouting-jackson</code> and <code>kikaha-urouting-jaxb</code> that add JSON and XML support respectively. Bellow you can see how you can create your own CSV unserializer.</p>
+<pre><code class="java language-java">import kikaha.core.modules.http.ContentType;
+import kikaha.urouting.api.*;
+import javax.inject.*;
+
+@Singleton
+@ContentType("text/csv")
+public class CSVUnserializer implements Unserializer {
+
+  public &lt;T&gt; T unserialize( final HttpServerExchange input, final Class&lt;T&gt; targetClass, String encoding ) throws IOException {
+    // You can use the 'input' object to unserialize the entity
+    // Or import the Simplified Undertow API
+    T instance = // apply your unserialization rule here
+    return instance;
+  }
+}
+</code></pre>
+<h2 id="undestandingserializers">Undestanding Serializers</h2>
+<p><em>Serializers, in other hand, are responsible to convert an Java object into data that will be send back to the HTTP client</em>. Every time you need retrieve a list of users from your database and send it back to the browser, Kikaha will use the Content-Type returned by <code>Response.contentType()</code> to determine which <code>kikaha.urouting.api.Serializer</code> implementation will be used to translate the Java list of objects into a data that the browser understand. The method <code>retrieveUsers</code> bellow illustrates this.</p>
+<pre><code class="java language-java">package sample;
+
+import kikaha.urouting.api.*;
+import javax.inject.*;
+
+@Path("api/users")
+public class UserResource {
+
+  // Inject here the services you need to retrieve data...
+
+  @GET
+  public Response retrieveUsers(){
+    List&lt;User&gt; users = // retrieve the list of users
+    return DefaultResponses.ok( users )
+      .contentType( "text/csv" );
+  }
+
+  @GET
+  @Path("alternative1")
+  @Produces("text/csv")
+  public Response retrieveUsersAlternative1(){
+    List&lt;User&gt; users = // retrieve the list of users
+    return DefaultResponses.ok( users );
+  }
+
+  @GET
+  @Path("alternative2")
+  @Produces("text/csv")
+  public List&lt;User&gt; retrieveUsersAlternative2(){
+    List&lt;User&gt; users = // retrieve the list of users
+    return users;
+  }
+}
+</code></pre>
+<p>The above sample code also illustrate two alternative ways to send back the user list to the HTTP cliente. The <code>retrieveUsersAlternative1</code> shows that is possible to define the produced response Content-Type through the <code>@Produces</code> annotation. The <code>retrieveUsersAlternative2</code> shows that you can just return the user list object, also indicating the produced response Content-Type through the <code>@Produces</code> annotation.</p>
+<h4 id="note">Note</h4>
+<p>In both cases (serialization and unserialization) when no Content-Type is defined "text/plain" is assumed. Thus, developers are encouraged always inform the desired Content-Type for each exposed endpoint, or at the class definition</p>
+</div>
+
+<div class="g-column g-4-12 t-6-12 m-12-12">
+<div class="home-about--git-download-block">
+<h3>Welcome</h3>
+<!-- SIDE BAR -->
+<p>WELCOME
+<a href="About-kikaha.html">About</a>
+<a href="Kikaha-Philosophy.html">Kikaha philosophy</a></p>
+<p>GETTING STARTED
+<a href="Getting-Started-in-1-Minute.html">Getting started in 1 minute</a>
+<a href="Creating-a-Kikaha-maven-project.html">Creating a Kikaha maven project</a>
+<a href="Logging-Configuration.html">Logging configuration</a>
+<a href="Architecture-Overview.html">Architecture overview</a>
+<a href="Configuring-the-server.html">Configuring the server</a></p>
+<p>CORE FEATURES
+<a href="HTTP-and-HTTPS.html">HTTP and HTTPS</a>
+<a href="Routing-static-assets.html">Routing static assets</a>
+<a href="Dependency-Injection.html">Dependency injection</a>
+<a href="Authentication-and-Authorization.html">Authentication and authorization</a>
+<a href="Smart-Routes.html">Smart routes</a></p>
+<p>ESSENTIAL MODULES
+<a href="uRouting-API.html">μRouting API</a>
+<a href="Web-Socket-routing.html">WebSocket Routing</a>
+<a href="Database-Access.html">Database Connection Pool</a>
+<a href="JSON-with-Jackson.html">JSON with Jackson</a>
+<a href="Proto-Buffers.html">Protobuf</a>
+<a href="Mustache.html">Mustache Templates</a>
+<a href="Rocker-Templates.html">Rocker Templates</a>
+<a href="BCrypt.html">BCrypt</a></p>
+<p>CLOUD MODULES
+<a href="Consul.io.html">Consul.io</a>
+<a href="Codahale-Metrics.html">Codahale's Metrics</a>
+<a href="Auth0.html">Auth0 Single Sign-On</a>
+<a href="uWorkers.html">μWorkers - Actor-like API</a>
+<a href="Hazelcast.html">Hazelcast</a></p>
+<p>AWS-RELATED MODULES
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+IAM+Credentials&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+IAM+Credentials..html">AWS IAM Credentials</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+EC2&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+EC2..html">AWS EC2</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+SQS+Queues&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+SQS+Queues..html">AWS SQS queues</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+CloudWatch+Metrics&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+CloudWatch+Metrics..html">AWS CloudWatch metrics</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+ALB&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+Load+Balacer..html">AWS Application Load Balancer</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+Lambda&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+Lambda+Functions..html">AWS Lambda functions</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+X-RAY&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+X-RAY..html">AWS X-Ray</a></p>
+<p>TUTORIALS
+<a href="creating-your-first-http-route.html">Creating your first HTTP route</a>
+<a href="kikahas-command-line-interface-tool.html">Kikaha's command line interface</a>
+<a href="configuring-your-favorite-ide.html">Configuring your favorite IDE</a>
+<a href="Kikaha-Wro4j-Integration.html">Wro4j Integration</a></p>
+<p>ADVANCED TOPICS
+<a href="Creating-Custom-Modules.html">Creating custom modules</a>
+<a href="Routing-With-Undertow.html">Routing with Undertow's API</a>
+<a href="Creating-Custom-Cloud-Modules.html">Creating custom cloud modules</a></p>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</body>
+</html>

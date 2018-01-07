@@ -1,2 +1,11 @@
-# Auto detect text files and perform LF normalization
+# Images
+*.gif           binary
+*.ico           binary
+*.jar           binary
+*.jpg           binary
+*.jpeg          binary
+*.png binary
+
+# Make other files text
 * text eol=lf
+

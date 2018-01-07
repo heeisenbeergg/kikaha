@@ -1,0 +1,354 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Learn Git with beginner to advanced Git tutorials on workflows, git commands, git migration and code review.">
+<meta name="author" content="Atlassian">
+<link rel="canonical" href="https://www.atlassian.com/git"/>
+<title>Kikaha documentation</title>
+<link rel="stylesheet" href="site.css"/>
+<link href="https://fonts.googleapis.com/css?family=Sanchez:200,300,400,600" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Titillium+Web" rel="stylesheet">
+<script src="showdown.min.js">
+<script src="showdown-github.min.js">
+<script>
+
+</script>
+</head>
+<body class="wac git-home git">
+<div class="header">
+  <div class="container">
+    <span class="k">k</span>
+    <h1>Kikaha</h1>
+    <a href="https://blog.kikaha.io">blog</a>
+    <a href="https://github.com/Skullabs/kikaha">source code</a>
+  </div>
+</div>
+
+<div class="page-wrap">
+<div class="home-section home-about home-start">
+<div class="g-row container">
+
+<div class="g-column g-7-12 t-6-12 m-12-12">
+<!-- CONTENT -->
+<h1 id="dependencyinjection">Dependency Injection</h1>
+<p>Kikaha's core is <a href="https://docs.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html">SPI</a> based, and uses it to search for implementations of its internal APIs. This allowed Kikaha to keep its development stack quite lean, and does not forces developers to import specific CDI library.</p>
+<p>On other hand, Java's CDI (JSR-330 and JSR-299) is a very popular mechanism of <em>dependency injection</em> and Kikaha also support it. Both approaches of dependency injection is discussed on the following topics.</p>
+<h2 id="makingimplementationsinjectable">Making implementations Injectable</h2>
+<p>At many places at this documentation you will be noticed to make an implementation an <strong>Injectable Service</strong> or a <strong>Managed Service</strong>. Kikaha will consider something an injectable (managed) service if:</p>
+<ul>
+<li>It is defined as an SPI implementation of an interface (or a superclass)</li>
+<li>Is annotated with <code>javax.inject.Singleton</code></li>
+</ul>
+<h2 id="manuallyprovidingdependencyasspi">Manually providing dependency as SPI</h2>
+<p>Java 6 brought SPI support out-of-box. It loads implementations of an interface (or extensions of superclasses) dynamically. It allows libraries developers to avoid scans the entire ClassPath in order to find interface implementations at the startup time of an application. Kikaha makes intense use of SPI in order to improve its warm up time.</p>
+<p>To make a class an <em>injectable service</em> through SPI, as specified the <strong><a href="https://docs.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html">Java's ServiceLoader API</a></strong>, basically you have to create a text file with the <em>canonical name</em> of the intended implementation and include a line with the concrete class' canonical name for each implementation you want to available.</p>
+<p>For an example, if you just created an implementation of <code>kikaha.core.security.AuthenticationMechanism</code> and intend to manually make it available as an injectable service you have to create a file at the <code>resources</code> folder called <code>META-INF/services/kikaha.core.security.AuthenticationMechanism</code> and insert one line with the canonical name of any your AuthenticationMechanism's implementation.</p>
+<pre><code>#META-INF/services/kikaha.core.security.AuthenticationMechanism
+sample.security.UsernameAndPasswordAuthenticationMechanism
+sample.security.SSLAuthenticationMechanism
+</code></pre>
+<p>For a more detailed overview about SPI, please take a deep look at the <strong><a href="https://docs.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html">Java's ServiceLoader API</a></strong> documentation.</p>
+<h2 id="cdisupportjsr330andjsr299">CDI Support (JSR-330 and JSR-299)</h2>
+<p>Once Kikaha was designed as a micro-services middleware, in order to keep things simple and avoid complicated/obfuscated code design, it only offers basic JSR-330 and JSR-299 support. Bellow a comparison table of Annotations that is supported by Kikaha CDI Module.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">Functionality</th>
+<th style="text-align:left;">CDI JSR-330</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">Singleton services</td>
+<td style="text-align:left;">javax.inject.Singleton</td>
+</tr>
+<tr>
+<td style="text-align:left;">Inject a service into a field</td>
+<td style="text-align:left;">javax.inject.Inject</td>
+</tr>
+<tr>
+<td style="text-align:left;">Producer/factory method pattern</td>
+<td style="text-align:left;">javax.enterprise.inject.Produces (JSR-299)</td>
+</tr>
+<tr>
+<td style="text-align:left;">A method that should be dispatched after a service is instantiated.</td>
+<td style="text-align:left;">javax.annotation.PostConstruct</td>
+</tr>
+<tr>
+<td style="text-align:left;">Multiple services implementing the same type</td>
+<td style="text-align:left;">javax.inject.Inject + javax.enterprise.inject.Typed (works only on Iterable/Collection fields)</td>
+</tr>
+<tr>
+<td style="text-align:left;">Create annotations that qualifies candidates to be injected</td>
+<td style="text-align:left;">javax.inject.Qualifier</td>
+</tr>
+</tbody>
+</table>
+<p>In order to activate CDI support you should include the <code>kikaha-injection</code> module on your dependency list.</p>
+<pre><code class="shell language-shell"># Via command line
+kikaha project add_dep "io.skullabs.kikaha:kikaha-injection"
+</code></pre>
+<pre><code class="xml language-xml"># Via maven
+&lt;dependency&gt;
+  &lt;groupId&gt;io.skullabs.kikaha&lt;/groupId&gt;
+  &lt;version&gt;${kikaha.version}&lt;/version&gt;
+  &lt;artifactId&gt;kikaha-injection&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;!-- all dependency is resolved at the compile time.
+     thus, maven kikaha developers should include the
+     following library (needed only at compile time)
+     in order to the Dependency Discovery process works
+     as expected. If your maven project extends kikaha-parent
+     then you can skip this dependency. --&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;io.skullabs.kikaha&lt;/groupId&gt;
+  &lt;version&gt;${kikaha.version}&lt;/version&gt;
+  &lt;artifactId&gt;kikaha-injection-processor&lt;/artifactId&gt;
+  &lt;scope&gt;provided&lt;/scope&gt;
+&lt;/dependency&gt;
+</code></pre>
+<h1 id="thebasicsofcdiwithsamples">The basics of CDI with Samples</h1>
+<p>Every time you need dependency injection on your source code, you will use annotations available at the <code>javax.inteject</code> and <code>javax.enterprise.inject</code> packages. On our examples we shall assume we've use the following imports:</p>
+<pre><code class="java language-java">// basic imports
+import javax.enterprise.inject.*;
+import javax.inject.*;
+</code></pre>
+<h3 id="managedclasses">Managed classes</h3>
+<p>You will see this term widely used at this documentation. Managed classes are classes that is instantiated by the Kikaha's CDI context. Classes that handled requests is an example of classes that the CDI context instantiate at the boot of your application.</p>
+<h3 id="cdicontext">CDI Context</h3>
+<p>Is a basic service that initiate the entire Kikaha application. It handles all service discovery needed by the Kikaha Lifecycle. It instantiate, to list a few: Modules, Listeners, Http Handlers, the configuration reader, and all services created by developers. To understand how CDI Context is initialized take a look at the <strong><a href="doc:architecture-overview.html">Architecture Overview</a></strong> topic of this documentation.</p>
+<h3 id="injectingdependencies">Injecting dependencies</h3>
+<p>You can inject both Singleton and Non-Singleton dependencies on your source classes, as long as your class (which will have dependencies injected) is managed through the CDI context. The bellow sample code exemplify this behavior.</p>
+<pre><code class="java language-java">@Singleton
+public class MySingletonService {}
+
+public class MyNonSingletonService {
+
+  @Inject MySingletonService singleton;
+}
+
+@Singleton
+public class AServiceThatInjectDependencies(){
+
+  @Inject MyNonSingletonService nonSingleton;
+
+  @Inject MySingletonService singleton;
+}
+</code></pre>
+<p>Classes annotated with the <code>@Singleton</code> annotation will always be managed by the CDI context. The CDI Context will always ensure to satisfy all dependencies a managed class may have. If a non-singleton class is required to be inject, it will be also instantiated and will have all its dependencies resolved too.</p>
+<h3 id="injectingimplementationsofinterfacesorsuperclasses">Injecting implementations of Interfaces or Superclasses</h3>
+<p>It is also possible to inject concrete classes that implements a specific Interface (or extends a specific superclass).</p>
+<pre><code class="java language-java">public interface Hero {}
+
+@Singleton
+public class Batman implements Hero {}
+
+@Singleton
+public class Superman implements Hero {}
+
+public class ActionSceneThatRequiresAnHero {
+
+  @Inject Hero hero;
+
+}
+</code></pre>
+<p>At the above example, the first implementation of Hero available at the class path will be injected into the <code>ActionSceneThatRequiresAnHero.hero</code> field. In some cases, this may be not the expected behavior. Sometimes, we need all available implementations of a specific interface or superclass. The follow exemple, though, show how is possible to inject all <code>Hero</code> implementation on a managed class.</p>
+<pre><code class="java language-java">public interface Hero {}
+
+@Singleton
+public class Batman implements Hero {}
+
+@Singleton
+public class Superman implements Hero {}
+
+public class JusticeLeague {
+
+  @Inject @Typed(Hero.class)
+  Iterable&lt;Hero&gt; heros;
+}
+</code></pre>
+<blockquote>
+  <p>Note: in order to have multiple implementations injected into your classes you should annotate your field with both <code>@Inject</code> and <code>@Typed</code>  annotations. Also, it should be of <code>Iterable</code> type.</p>
+</blockquote>
+<p>By default, a service is automatically mapped to be injected as its own class, or its direct implemented interfaces. You can use the <code>@Typed</code> annotation to specify which types of candidates your implementation should be available for, as shown at the bellow sample code.</p>
+<pre><code class="java language-java">public interface Hero {}
+
+public abstract class AbstractHero {}
+
+@Singleton
+@Typed(AbstractHero.class)
+public class Batman extends AbstractHero implements Hero {}
+
+@Singleton
+@Typed(AbstractHero.class)
+public class Superman extends AbstractHero implements Hero {}
+
+public class JusticeLeague {
+
+  @Inject @Typed(AbstractHero.class)
+  Iterable&lt;AbstractHero&gt; heros;
+}
+</code></pre>
+<h3 id="usingqualifierstodealwithambiguouscandidates">Using Qualifiers to deal with ambiguous candidates</h3>
+<p>Have more than one implementation candidates of a specific interface or superclass may become a problem, specially if these implementations may have different needs. Its possible to create a qualifier annotation handle this ambiguation, as shown at the following example.</p>
+<pre><code class="java language-java">public interface Hero {}
+
+@Qualifier
+@Retention(RUNTIME)
+public @interface @WithSuperPowers{}
+
+@Singleton
+@WithSuperPowers
+public class Superman implements Hero {}
+
+@Qualifier
+@Retention(RUNTIME)
+public @interface @WithLotOfMoney{}
+
+@Singleton
+@WithLotOfMoney
+public class Batman implements Hero {}
+
+public class JusticeLeague {
+
+  @Inject @WithLotOfMoney Hero heroWithMoney;
+  @Inject @WithSuperPowers Hero heroWithSuperPowers;
+}
+</code></pre>
+<h3 id="thefactorypattern">The Factory Pattern</h3>
+<p>You can use the Factory Pattern to manually create an object and make them available on the <em>CDI Context</em>. The following exemple shows the usage of <code>@javax.enterprise.inject.Produces</code> annotation to define which method will create a specific object and make it available at the CDI.</p>
+<pre><code class="java language-java">// Hero definition
+public interface Hero {
+  String getName();
+}
+
+// Hero implementation
+public class ManuallyCreatedHero implements Hero {
+  String name;
+
+  public String getName(){ return name; }
+}
+
+// A service that will create Hero implementations
+public class ManuallyCreatedHeroProvider {
+
+  @Produces
+  // the method that will create the implementation
+  public Hero manuallyCreateHeroes(){
+    return new ManuallyCreatedHero( "Chuck Norris" );
+  }
+}
+
+public class AServiceThatPrintTheNameOfHero {
+
+  @Inject Hero hero;
+
+  public void printHeroName(){
+    System.out.println( hero.getName() );
+  }
+}
+</code></pre>
+<p>It may sounds like a verbose approach to create a simple object, but this brings a lot of benefits when you have a complex application to write. You may use this approach to create low coupled classes and easier to maintain. One common example of its usage is when you have pre-defined values defined on the configuration file, but you don't want it tight coupled to the <code>kikaha.config.Config</code> class.</p>
+<pre><code class="java language-java">// Hero definition
+public interface Hero {
+  String getName();
+}
+
+// Hero implementation
+public class ManuallyCreatedHero implements Hero {
+  String name;
+
+  public String getName(){ return name; }
+}
+
+// A service that will create Hero implementations
+public class ManuallyCreatedHeroProvider {
+
+  @Inject kikaha.config.Config config;
+
+  @Produces
+  // the method that will create the implementation
+  public Hero manuallyCreateHeroes(){
+    return new ManuallyCreatedHero( config.getString( "my-app.hero-name" ) );
+  }
+}
+
+public class AServiceThatPrintTheNameOfHero {
+
+  @Inject Hero hero;
+
+  public void printHeroName(){
+    System.out.println( hero.getName() );
+  }
+}
+</code></pre>
+<p>At this exemple, we can see that behaves exactly as in the later example and does not depends on <code>kikaha.config.Config</code> file, but the default implementation available at the CDI Context will always be populated with the hero name defined at the entry <code>my-app.hero-name</code> available at your <code>application.conf</code> file. In other hand, if, for some reason, you need to create it manually it is just a matter of write <code>new ManuallyCreatedHeroProvider( "name here" )</code>.</p>
+<blockquote>
+  <p><strong>Be aware of multiple copies of the same object</strong>. Is important to say that, unlike the Singleton ones, objects created through the Factory Pattern may have more than one copy. Every time a class needs an object that is provided through this pattern, the CDI execute the factory method in order to retrieve the expected object. This means that, if you have two services that needs to inject the same type of object - which is provided through this pattern - both will receive new copies of this object.</p>
+  <p>If you have a Singleton implementation of a specific type and also have a method annotated with the <code>@Produces</code> annotation, the CDI will always use the object created by the factory as an injectable candidate - even if the method returns <code>null</code>.</p>
+</blockquote>
+</div>
+
+<div class="g-column g-4-12 t-6-12 m-12-12">
+<div class="home-about--git-download-block">
+<h3>Welcome</h3>
+<!-- SIDE BAR -->
+<p>WELCOME
+<a href="About-kikaha.html">About</a>
+<a href="Kikaha-Philosophy.html">Kikaha philosophy</a></p>
+<p>GETTING STARTED
+<a href="Getting-Started-in-1-Minute.html">Getting started in 1 minute</a>
+<a href="Creating-a-Kikaha-maven-project.html">Creating a Kikaha maven project</a>
+<a href="Logging-Configuration.html">Logging configuration</a>
+<a href="Architecture-Overview.html">Architecture overview</a>
+<a href="Configuring-the-server.html">Configuring the server</a></p>
+<p>CORE FEATURES
+<a href="HTTP-and-HTTPS.html">HTTP and HTTPS</a>
+<a href="Routing-static-assets.html">Routing static assets</a>
+<a href="Dependency-Injection.html">Dependency injection</a>
+<a href="Authentication-and-Authorization.html">Authentication and authorization</a>
+<a href="Smart-Routes.html">Smart routes</a></p>
+<p>ESSENTIAL MODULES
+<a href="uRouting-API.html">μRouting API</a>
+<a href="Web-Socket-routing.html">WebSocket Routing</a>
+<a href="Database-Access.html">Database Connection Pool</a>
+<a href="JSON-with-Jackson.html">JSON with Jackson</a>
+<a href="Proto-Buffers.html">Protobuf</a>
+<a href="Mustache.html">Mustache Templates</a>
+<a href="Rocker-Templates.html">Rocker Templates</a>
+<a href="BCrypt.html">BCrypt</a></p>
+<p>CLOUD MODULES
+<a href="Consul.io.html">Consul.io</a>
+<a href="Codahale-Metrics.html">Codahale's Metrics</a>
+<a href="Auth0.html">Auth0 Single Sign-On</a>
+<a href="uWorkers.html">μWorkers - Actor-like API</a>
+<a href="Hazelcast.html">Hazelcast</a></p>
+<p>AWS-RELATED MODULES
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+IAM+Credentials&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+IAM+Credentials..html">AWS IAM Credentials</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+EC2&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+EC2..html">AWS EC2</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+SQS+Queues&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+SQS+Queues..html">AWS SQS queues</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+CloudWatch+Metrics&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+CloudWatch+Metrics..html">AWS CloudWatch metrics</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+ALB&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+Load+Balacer..html">AWS Application Load Balancer</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+Lambda&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+Lambda+Functions..html">AWS Lambda functions</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+X-RAY&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+X-RAY..html">AWS X-Ray</a></p>
+<p>TUTORIALS
+<a href="creating-your-first-http-route.html">Creating your first HTTP route</a>
+<a href="kikahas-command-line-interface-tool.html">Kikaha's command line interface</a>
+<a href="configuring-your-favorite-ide.html">Configuring your favorite IDE</a>
+<a href="Kikaha-Wro4j-Integration.html">Wro4j Integration</a></p>
+<p>ADVANCED TOPICS
+<a href="Creating-Custom-Modules.html">Creating custom modules</a>
+<a href="Routing-With-Undertow.html">Routing with Undertow's API</a>
+<a href="Creating-Custom-Cloud-Modules.html">Creating custom cloud modules</a></p>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</body>
+</html>

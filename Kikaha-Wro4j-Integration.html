@@ -1,0 +1,208 @@
+ï»¿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Learn Git with beginner to advanced Git tutorials on workflows, git commands, git migration and code review.">
+<meta name="author" content="Atlassian">
+<link rel="canonical" href="https://www.atlassian.com/git"/>
+<title>Kikaha documentation</title>
+<link rel="stylesheet" href="site.css"/>
+<link href="https://fonts.googleapis.com/css?family=Sanchez:200,300,400,600" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Titillium+Web" rel="stylesheet">
+<script src="showdown.min.js">
+<script src="showdown-github.min.js">
+<script>
+
+</script>
+</head>
+<body class="wac git-home git">
+<div class="header">
+  <div class="container">
+    <span class="k">k</span>
+    <h1>Kikaha</h1>
+    <a href="https://blog.kikaha.io">blog</a>
+    <a href="https://github.com/Skullabs/kikaha">source code</a>
+  </div>
+</div>
+
+<div class="page-wrap">
+<div class="home-section home-about home-start">
+<div class="g-row container">
+
+<div class="g-column g-7-12 t-6-12 m-12-12">
+<!-- CONTENT -->
+<h1 id="wro4jintegration">Wro4j Integration</h1>
+<blockquote>
+  <p>Note this guide uses the former <code>Kikaha v2.0.4</code> and the wro4j's version <code>v1.8.0</code>.</p>
+</blockquote>
+<p>Improving web page performance with <a href="https://github.com/wro4j/wro4j"><strong>Wro4j</strong></a> in <strong>Kikaha</strong>.</p>
+<ol>
+<li>Add maven dependency in <code>pom.xml</code>.</li>
+</ol>
+<pre><code>...
+  &lt;dependency&gt;
+      &lt;groupId&gt;ro.isdc.wro4j&lt;/groupId&gt;
+      &lt;artifactId&gt;wro4j-core&lt;/artifactId&gt;
+      &lt;version&gt;1.8.0&lt;/version&gt;
+  &lt;/dependency&gt;
+...  
+</code></pre>
+<pre><code>    
+</code></pre>
+<ol start="2">
+<li>Add plugin configuration in <code>pom.xml</code>.</li>
+</ol>
+<pre><code>...
+    &lt;plugin&gt;
+        &lt;groupId&gt;ro.isdc.wro4j&lt;/groupId&gt;
+        &lt;artifactId&gt;wro4j-maven-plugin&lt;/artifactId&gt;
+        &lt;version&gt;1.8.0&lt;/version&gt;
+        &lt;executions&gt;
+            &lt;execution&gt;
+                &lt;phase&gt;compile&lt;/phase&gt;
+                &lt;goals&gt;
+                    &lt;goal&gt;run&lt;/goal&gt;
+                &lt;/goals&gt;
+            &lt;/execution&gt;
+        &lt;/executions&gt;
+        &lt;configuration&gt;
+            &lt;extraConfigFile&gt;${config.dir.web}/WEB-INF/wro.properties&lt;/extraConfigFile&gt;
+            &lt;wroFile&gt;${config.dir.web}/WEB-INF/wro.xml&lt;/wroFile&gt;
+            &lt;targetGroups&gt;all&lt;/targetGroups&gt;
+            &lt;minimize&gt;true&lt;/minimize&gt;
+            &lt;cssDestinationFolder&gt;${config.dir.web}/compiled/css/&lt;/cssDestinationFolder&gt;
+            &lt;jsDestinationFolder&gt;${config.dir.web}/compiled/js/&lt;/jsDestinationFolder&gt;
+            &lt;contextFolder&gt;${config.dir.web}&lt;/contextFolder&gt;
+
+            &lt;ignoreMissingResources&gt;true&lt;/ignoreMissingResources&gt;
+        &lt;/configuration&gt;
+    &lt;/plugin&gt;
+...
+</code></pre>
+<ol start="3">
+<li>Create <em>${config.dir.web}/assets/css</em> and <em>${config.dir.web}/assets/css</em> <code>directories</code>. These directories contains all (and custom) css and js files (jquery.js, bootstrap.css, custom.css etc.)</li>
+</ol>
+<pre><code>&lt;kikaha project&gt;/webapp/assets/css
+&lt;kikaha project&gt;/webapp/assets/js
+</code></pre>
+<ol start="4">
+<li>Create <em>${config.dir.web}/WEB-INF</em> <code>directory</code> for the <code>wro4j</code> configuration files.</li>
+</ol>
+<pre><code>&lt;kikaha project&gt;/webapp/WEB-INF/web.xml
+&lt;kikaha project&gt;/webapp/WEB-INF/wro.properties
+&lt;kikaha project&gt;/webapp/WEB-INF/wro.xml
+</code></pre>
+<ol start="5">
+<li>Add <code>&lt;kikaha project&gt;/webapp/WEB-INF/web.xml</code> configurations.
+```
+<filter>
+<filter-name>WebResourceOptimizer</filter-name>
+<filter-class>ro.isdc.wro.http.WroFilter</filter-class>
+</filter></li>
+</ol>
+<p><filter-mapping>
+<filter-name>WebResourceOptimizer</filter-name>
+<url-pattern>/wro/*</url-pattern>
+</filter-mapping></p>
+<pre><code>6. Add `&lt;kikaha project&gt;/webapp/WEB-INF/wro.properties` configurations.
+</code></pre>
+<p>resourceWatcherUpdatePeriod=5
+debug=false
+disableCache=false
+gzipResources=true
+cacheGzippedContent=false
+ignoreMissingResources=true
+jmxEnabled=true
+parallelPreprocessing=true
+managerFactoryClassName=ro.isdc.wro.manager.factory.ConfigurableWroManagerFactory
+preProcessors=cssUrlRewriting, cssImport, lessCss.less, semicolonAppender, coffeeScript.coffee
+postProcessors=yuiCssMin,jsMin
+ignoreEmptyGroup=true
+ignoreFailingProcessor=true
+hashStrategy=MD5</p>
+<pre><code>7. Add `&lt;kikaha project&gt;/webapp/WEB-INF/wro.xml` configurations.
+</code></pre>
+<p><groups xmlns="http://www.isdc.ro/wro">
+    <group name="all">
+        <css>/assets/css/<em>.css</css>
+        <js>/assets/js/</em>.js</js>
+    </group>
+</groups></p>
+<pre><code>8. Create *${config.dir.web}/compiled/css* and *${config.dir.web}/compiled/css* `directories`. These are output directories of css and js files.
+</code></pre>
+<p><kikaha project>/compiled/assets/css
+<kikaha project>/compiled/assets/js</p>
+<pre><code>9. Use the `compiled` `minified` css and js files in the [html template](https://github.com/fizzed/rocker). 
+</code></pre>
+<p>€¦
+    <!-- Wro4j css (compiled)-->
+    <link rel="stylesheet" href="/compiled/css/all.css"></p>
+<pre><code>&lt;!-- Wro4j js (compiled) --&gt;
+&lt;script src="/compiled/js/all.js"&gt;&lt;/script&gt;
+</code></pre>
+<p>€¦<br />
+```</p>
+</div>
+
+<div class="g-column g-4-12 t-6-12 m-12-12">
+<div class="home-about--git-download-block">
+<h3>Welcome</h3>
+<!-- SIDE BAR -->
+<p>WELCOME
+<a href="About-kikaha.html">About</a>
+<a href="Kikaha-Philosophy.html">Kikaha philosophy</a></p>
+<p>GETTING STARTED
+<a href="Getting-Started-in-1-Minute.html">Getting started in 1 minute</a>
+<a href="Creating-a-Kikaha-maven-project.html">Creating a Kikaha maven project</a>
+<a href="Logging-Configuration.html">Logging configuration</a>
+<a href="Architecture-Overview.html">Architecture overview</a>
+<a href="Configuring-the-server.html">Configuring the server</a></p>
+<p>CORE FEATURES
+<a href="HTTP-and-HTTPS.html">HTTP and HTTPS</a>
+<a href="Routing-static-assets.html">Routing static assets</a>
+<a href="Dependency-Injection.html">Dependency injection</a>
+<a href="Authentication-and-Authorization.html">Authentication and authorization</a>
+<a href="Smart-Routes.html">Smart routes</a></p>
+<p>ESSENTIAL MODULES
+<a href="uRouting-API.html">Î¼Routing API</a>
+<a href="Web-Socket-routing.html">WebSocket Routing</a>
+<a href="Database-Access.html">Database Connection Pool</a>
+<a href="JSON-with-Jackson.html">JSON with Jackson</a>
+<a href="Proto-Buffers.html">Protobuf</a>
+<a href="Mustache.html">Mustache Templates</a>
+<a href="Rocker-Templates.html">Rocker Templates</a>
+<a href="BCrypt.html">BCrypt</a></p>
+<p>CLOUD MODULES
+<a href="Consul.io.html">Consul.io</a>
+<a href="Codahale-Metrics.html">Codahale's Metrics</a>
+<a href="Auth0.html">Auth0 Single Sign-On</a>
+<a href="uWorkers.html">Î¼Workers - Actor-like API</a>
+<a href="Hazelcast.html">Hazelcast</a></p>
+<p>AWS-RELATED MODULES
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+IAM+Credentials&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+IAM+Credentials..html">AWS IAM Credentials</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+EC2&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+EC2..html">AWS EC2</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+SQS+Queues&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+SQS+Queues..html">AWS SQS queues</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+CloudWatch+Metrics&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+CloudWatch+Metrics..html">AWS CloudWatch metrics</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+ALB&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+Load+Balacer..html">AWS Application Load Balancer</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+Lambda&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+Lambda+Functions..html">AWS Lambda functions</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+X-RAY&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+X-RAY..html">AWS X-Ray</a></p>
+<p>TUTORIALS
+<a href="creating-your-first-http-route.html">Creating your first HTTP route</a>
+<a href="kikahas-command-line-interface-tool.html">Kikaha's command line interface</a>
+<a href="configuring-your-favorite-ide.html">Configuring your favorite IDE</a>
+<a href="Kikaha-Wro4j-Integration.html">Wro4j Integration</a></p>
+<p>ADVANCED TOPICS
+<a href="Creating-Custom-Modules.html">Creating custom modules</a>
+<a href="Routing-With-Undertow.html">Routing with Undertow's API</a>
+<a href="Creating-Custom-Cloud-Modules.html">Creating custom cloud modules</a></p>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</body>
+</html>

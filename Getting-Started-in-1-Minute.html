@@ -1,0 +1,137 @@
+ï»¿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Learn Git with beginner to advanced Git tutorials on workflows, git commands, git migration and code review.">
+<meta name="author" content="Atlassian">
+<link rel="canonical" href="https://www.atlassian.com/git"/>
+<title>Kikaha documentation</title>
+<link rel="stylesheet" href="site.css"/>
+<link href="https://fonts.googleapis.com/css?family=Sanchez:200,300,400,600" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Titillium+Web" rel="stylesheet">
+<script src="showdown.min.js">
+<script src="showdown-github.min.js">
+<script>
+
+</script>
+</head>
+<body class="wac git-home git">
+<div class="header">
+  <div class="container">
+    <span class="k">k</span>
+    <h1>Kikaha</h1>
+    <a href="https://blog.kikaha.io">blog</a>
+    <a href="https://github.com/Skullabs/kikaha">source code</a>
+  </div>
+</div>
+
+<div class="page-wrap">
+<div class="home-section home-about home-start">
+<div class="g-row container">
+
+<div class="g-column g-7-12 t-6-12 m-12-12">
+<!-- CONTENT -->
+<h1 id="gettingstartedin1minute">Getting Started in 1 Minute</h1>
+<p>As a micro-service middleware, Kikaha is just a library that helps developers to write fast codes faster. In practice it means that you can use any JVM build tool to create you project. Kikaha is available at the Maven Central Repository, so, if you choose to use Maven to build Kikaha we encourage you to take a look at the <strong><a href="Creating-a-Kikaha-maven-project.html">Creating a Kikaha maven project</a></strong> guide.</p>
+<p>To automate most of build routines that maven imposes, Kikaha also comes with a simple Command Line Tool. Indeed, the fastest way to create the first Kikaha is through the <a href="kikahas-command-line-interface-tool.html">Kikaha's CLI</a> .</p>
+<ol>
+<li>Download the <strong><a href="kikahas-command-line-interface-tool.html">Kikaha's command line interface tool</a></strong>.</li>
+<li>Run the following commands at your terminal. The comments bellow will helps you to understand what will be done.</li>
+</ol>
+<pre><code class="shell language-shell"># create an empty project named first-project
+kikaha project create 2.0 --artifact-id=first-project
+# enter into the just created project folder
+cd first-project
+# run your project
+kikaha run-app
+</code></pre>
+<p>Open your browser and enter the address <strong><a href="http://localhost:9000">http://localhost:9000</a></strong>.
+And€¦ that's it! You just finished your <em>1 Minute tutorial</em>.</p>
+<h2 id="notesaboutyourjustcreatedproject">Notes about your just created project</h2>
+<p>You just created an empty Kikaha project from empty-project template. It becomes with only a basic set of dependencies leaving up to you include the extra modules and dependencies you need on your project. The dependencies included is:</p>
+<ul>
+<li>The Kikaha Core module</li>
+<li>The Kikaha Dependency Injection module - in order to provide CDI integration</li>
+<li>Logback - as default logging framework</li>
+</ul>
+<blockquote>
+  <p>Out-of-box there is more than one project template available. Please, take a look at the <strong><a href="kikahas-command-line-interface-tool#section-project-templates-.html">Project templates</a></strong> page for more details.</p>
+</blockquote>
+<p>As opposite from a Kikaha project created as an <strong><a href="Creating-a-Kikaha-maven-project.html">ordinary maven project</a></strong>, your just created project does not follow the default maven directory structure convention. Indeed, maven lets you configure your own structure, if you want it. The default directory structure we have here were designed to be less verbose and be easier to understand, specially for those developers that isn't quite familiar with Maven.</p>
+<ul>
+<li><code>source</code> - To place your routes and another Java classes</li>
+<li><code>resources</code> - To place your resource files ( Server configuration, JPA configuration, template configuration, etc )</li>
+<li><code>webapp</code> - To place your static files or templates</li>
+<li><code>tests</code> - To place your unit tests</li>
+<li><code>tests-resources</code> - To place resources that belongs exclusively to unit/integration tests</li>
+</ul>
+<h2 id="nextssteps">Nexts steps</h2>
+<p>Now that you just finished your <em>1 minute tutorial</em> you may be interested in:</p>
+<ul>
+<li><strong><a href="creating-your-first-http-route.html">Creating your first Http Route</a></strong></li>
+<li><strong><a href="Routing-static-assets.html">Serving static assets</a></strong> - when you just want a fast service to server static HTML or Mustache-based content</li>
+</ul>
+</div>
+
+<div class="g-column g-4-12 t-6-12 m-12-12">
+<div class="home-about--git-download-block">
+<h3>Welcome</h3>
+<!-- SIDE BAR -->
+<p>WELCOME
+<a href="About-kikaha.html">About</a>
+<a href="Kikaha-Philosophy.html">Kikaha philosophy</a></p>
+<p>GETTING STARTED
+<a href="Getting-Started-in-1-Minute.html">Getting started in 1 minute</a>
+<a href="Creating-a-Kikaha-maven-project.html">Creating a Kikaha maven project</a>
+<a href="Logging-Configuration.html">Logging configuration</a>
+<a href="Architecture-Overview.html">Architecture overview</a>
+<a href="Configuring-the-server.html">Configuring the server</a></p>
+<p>CORE FEATURES
+<a href="HTTP-and-HTTPS.html">HTTP and HTTPS</a>
+<a href="Routing-static-assets.html">Routing static assets</a>
+<a href="Dependency-Injection.html">Dependency injection</a>
+<a href="Authentication-and-Authorization.html">Authentication and authorization</a>
+<a href="Smart-Routes.html">Smart routes</a></p>
+<p>ESSENTIAL MODULES
+<a href="uRouting-API.html">Î¼Routing API</a>
+<a href="Web-Socket-routing.html">WebSocket Routing</a>
+<a href="Database-Access.html">Database Connection Pool</a>
+<a href="JSON-with-Jackson.html">JSON with Jackson</a>
+<a href="Proto-Buffers.html">Protobuf</a>
+<a href="Mustache.html">Mustache Templates</a>
+<a href="Rocker-Templates.html">Rocker Templates</a>
+<a href="BCrypt.html">BCrypt</a></p>
+<p>CLOUD MODULES
+<a href="Consul.io.html">Consul.io</a>
+<a href="Codahale-Metrics.html">Codahale's Metrics</a>
+<a href="Auth0.html">Auth0 Single Sign-On</a>
+<a href="uWorkers.html">Î¼Workers - Actor-like API</a>
+<a href="Hazelcast.html">Hazelcast</a></p>
+<p>AWS-RELATED MODULES
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+IAM+Credentials&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+IAM+Credentials..html">AWS IAM Credentials</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+EC2&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+EC2..html">AWS EC2</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+SQS+Queues&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+SQS+Queues..html">AWS SQS queues</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+CloudWatch+Metrics&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+CloudWatch+Metrics..html">AWS CloudWatch metrics</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+ALB&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+Load+Balacer..html">AWS Application Load Balancer</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+Lambda&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+Lambda+Functions..html">AWS Lambda functions</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+X-RAY&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+X-RAY..html">AWS X-Ray</a></p>
+<p>TUTORIALS
+<a href="creating-your-first-http-route.html">Creating your first HTTP route</a>
+<a href="kikahas-command-line-interface-tool.html">Kikaha's command line interface</a>
+<a href="configuring-your-favorite-ide.html">Configuring your favorite IDE</a>
+<a href="Kikaha-Wro4j-Integration.html">Wro4j Integration</a></p>
+<p>ADVANCED TOPICS
+<a href="Creating-Custom-Modules.html">Creating custom modules</a>
+<a href="Routing-With-Undertow.html">Routing with Undertow's API</a>
+<a href="Creating-Custom-Cloud-Modules.html">Creating custom cloud modules</a></p>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</body>
+</html>

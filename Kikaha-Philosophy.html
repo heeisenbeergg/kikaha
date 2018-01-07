@@ -1,0 +1,117 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Learn Git with beginner to advanced Git tutorials on workflows, git commands, git migration and code review.">
+<meta name="author" content="Atlassian">
+<link rel="canonical" href="https://www.atlassian.com/git"/>
+<title>Kikaha documentation</title>
+<link rel="stylesheet" href="site.css"/>
+<link href="https://fonts.googleapis.com/css?family=Sanchez:200,300,400,600" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Titillium+Web" rel="stylesheet">
+<script src="showdown.min.js">
+<script src="showdown-github.min.js">
+<script>
+
+</script>
+</head>
+<body class="wac git-home git">
+<div class="header">
+  <div class="container">
+    <span class="k">k</span>
+    <h1>Kikaha</h1>
+    <a href="https://blog.kikaha.io">blog</a>
+    <a href="https://github.com/Skullabs/kikaha">source code</a>
+  </div>
+</div>
+
+<div class="page-wrap">
+<div class="home-section home-about home-start">
+<div class="g-row container">
+
+<div class="g-column g-7-12 t-6-12 m-12-12">
+<!-- CONTENT -->
+<h1 id="kikahaphilosophy">Kikaha Philosophy</h1>
+<blockquote>
+  <p>Man cannot discover new oceans unless he has the courage to lose sight of the shore.</p>
+</blockquote>
+<p>Quite often we hear a sales man talking about innovation, how his company will delivery a new version of a software bringing up a huge set of features that will change the way the industry will perform its daily tasks. But a wise developer will take a look into that software and see that the innovation the seller was talking about was just a few buttons that shows new windows. <em>We all know that innovation isn't about offer new features, but a create an experience that really solves the end user's problem.</em></p>
+<p>In 2013, we was engaged to rewrite a legacy C socket server that acted as communication layer to an even more legacy code written in Cobol. The team involved with the project was Java developers and, as should be, names like Tomcat, Jetty and Wildfly come to our mind. Even Play Framework was a possibility at time. After some research and analyzing our hardware limitations we ended up choosing <a href="http://undertow.io/">Undertow</a> as basis to our development.</p>
+<p>Simple, with low footprint and extremely fast, it performed amazingly under heavy load in production. As the software grew we automated the primary Undertow's APIs. Earlier in 2014 we had opened the source code of these automated parts. Originally named as <em>Undertow standalone</em> it was renamed to Kikaha and incubated at <a href="http://skullabs.io">Skullabs.io</a>.</p>
+<h2 id="keepthecomplexitylow">Keep the complexity low</h2>
+<p>We believe that most of developers need a convention to follow while developing a software. This allow them to perform more focused, once they do not have to define a design to its entire software.</p>
+<blockquote>
+  <p>One thing that makes Undertow unique is that it has no concept of a global container. Instead an Undertow server is assembled by the embedding application. This makes Undertow extremely flexible, and the embedding application can basically just pick the parts that they need, and assemble them in whatever way makes sense.</p>
+</blockquote>
+<p>Undertow intent to be more generic and it make sense, specially to JBoss Community, where it behave as basis to Wildfly, the most important Open Source JEE container. Kikaha, in other hand, was designed to bootstrap Undertow transparently, automatically deploying routes with no repetitive start up routines. <em>One of our main goals is to cover all Undertow API</em>, and then, complex configurations like <a href="http://undertow.io/undertow-docs/undertow-docs-1.2.0/index.html#assembling-a-server-manually">this one</a> will be totally optional.</p>
+<h2 id="reallylowfootprint">Really low footprint</h2>
+<p>While most of Java containers consumes a lot of RAM and takes up to 200Mb of disk space, a <a href="creating-your-first-http-route.html">simple Kikaha application</a> uses less than 5Mb of disk space and consumes near to 10Mb of RAM under average load. We have a heavy load application delivering up to 100K requests per second taking slightly more than 700Mb of RAM.</p>
+<h2 id="acleancodeserverforcleancoderdevelopers">A clean code server for clean coder developers</h2>
+<p>We know there is a lot of work to make Kikaha's code even more cleaner, but we believe we did a great job providing a nice well crafted API. We follow Uncle Bob's SOLID principles wherever is possible and make a great effort keeping our code coverage very close to 75%.</p>
+<p>We expect developers will be at home whenever a developer needs check the source code to find any gap our documentation does not provide.</p>
+<h2 id="andmodularityfortherestofus">And modularity for the rest of us</h2>
+<p>The software will grow as developer needs grows. We developed a tiny core and provide extensions in a plug-and-play fashion: no configuration lines of code needed.</p>
+</div>
+
+<div class="g-column g-4-12 t-6-12 m-12-12">
+<div class="home-about--git-download-block">
+<h3>Welcome</h3>
+<!-- SIDE BAR -->
+<p>WELCOME
+<a href="About-kikaha.html">About</a>
+<a href="Kikaha-Philosophy.html">Kikaha philosophy</a></p>
+<p>GETTING STARTED
+<a href="Getting-Started-in-1-Minute.html">Getting started in 1 minute</a>
+<a href="Creating-a-Kikaha-maven-project.html">Creating a Kikaha maven project</a>
+<a href="Logging-Configuration.html">Logging configuration</a>
+<a href="Architecture-Overview.html">Architecture overview</a>
+<a href="Configuring-the-server.html">Configuring the server</a></p>
+<p>CORE FEATURES
+<a href="HTTP-and-HTTPS.html">HTTP and HTTPS</a>
+<a href="Routing-static-assets.html">Routing static assets</a>
+<a href="Dependency-Injection.html">Dependency injection</a>
+<a href="Authentication-and-Authorization.html">Authentication and authorization</a>
+<a href="Smart-Routes.html">Smart routes</a></p>
+<p>ESSENTIAL MODULES
+<a href="uRouting-API.html">μRouting API</a>
+<a href="Web-Socket-routing.html">WebSocket Routing</a>
+<a href="Database-Access.html">Database Connection Pool</a>
+<a href="JSON-with-Jackson.html">JSON with Jackson</a>
+<a href="Proto-Buffers.html">Protobuf</a>
+<a href="Mustache.html">Mustache Templates</a>
+<a href="Rocker-Templates.html">Rocker Templates</a>
+<a href="BCrypt.html">BCrypt</a></p>
+<p>CLOUD MODULES
+<a href="Consul.io.html">Consul.io</a>
+<a href="Codahale-Metrics.html">Codahale's Metrics</a>
+<a href="Auth0.html">Auth0 Single Sign-On</a>
+<a href="uWorkers.html">μWorkers - Actor-like API</a>
+<a href="Hazelcast.html">Hazelcast</a></p>
+<p>AWS-RELATED MODULES
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+IAM+Credentials&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+IAM+Credentials..html">AWS IAM Credentials</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+EC2&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+EC2..html">AWS EC2</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+SQS+Queues&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+SQS+Queues..html">AWS SQS queues</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+CloudWatch+Metrics&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+CloudWatch+Metrics..html">AWS CloudWatch metrics</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+ALB&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+Load+Balacer..html">AWS Application Load Balancer</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+Lambda&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+Lambda+Functions..html">AWS Lambda functions</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+X-RAY&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+X-RAY..html">AWS X-Ray</a></p>
+<p>TUTORIALS
+<a href="creating-your-first-http-route.html">Creating your first HTTP route</a>
+<a href="kikahas-command-line-interface-tool.html">Kikaha's command line interface</a>
+<a href="configuring-your-favorite-ide.html">Configuring your favorite IDE</a>
+<a href="Kikaha-Wro4j-Integration.html">Wro4j Integration</a></p>
+<p>ADVANCED TOPICS
+<a href="Creating-Custom-Modules.html">Creating custom modules</a>
+<a href="Routing-With-Undertow.html">Routing with Undertow's API</a>
+<a href="Creating-Custom-Cloud-Modules.html">Creating custom cloud modules</a></p>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,247 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Learn Git with beginner to advanced Git tutorials on workflows, git commands, git migration and code review.">
+<meta name="author" content="Atlassian">
+<link rel="canonical" href="https://www.atlassian.com/git"/>
+<title>Kikaha documentation</title>
+<link rel="stylesheet" href="site.css"/>
+<link href="https://fonts.googleapis.com/css?family=Sanchez:200,300,400,600" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Titillium+Web" rel="stylesheet">
+<script src="showdown.min.js">
+<script src="showdown-github.min.js">
+<script>
+
+</script>
+</head>
+<body class="wac git-home git">
+<div class="header">
+  <div class="container">
+    <span class="k">k</span>
+    <h1>Kikaha</h1>
+    <a href="https://blog.kikaha.io">blog</a>
+    <a href="https://github.com/Skullabs/kikaha">source code</a>
+  </div>
+</div>
+
+<div class="page-wrap">
+<div class="home-section home-about home-start">
+<div class="g-row container">
+
+<div class="g-column g-7-12 t-6-12 m-12-12">
+<!-- CONTENT -->
+<h1 id="hazelcast">Hazelcast</h1>
+<p>Hazelcast is an open source in-memory data grid. It was designed to store data in-memory but in a distributed fashion, similarly to Memcached and Redis. The <code>kikaha-hazelcast</code> module integrated the most used structures that Hazelcast offers. This guide will cover these features and how do configure them. For a complete set of configurations and features that Hazelcast offers, please refer to the <strong><a href="http://hazelcast.org">Hazelcast documentation</a></strong>.
+To enable this integration, just include the Hazelcast module on your <em>classpath</em>.</p>
+<pre><code class="xml language-xml">&lt;dependency&gt;
+  &lt;groupId&gt;io.skullabs.kikaha&lt;/groupId&gt;
+  &lt;artifactId&gt;kikaha-cloud-hazelcast&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+<h2 id="configuringyourprojecttousehazelcast">Configuring your project to use Hazelcast</h2>
+<p>There is a few ways to configure Hazelcast, but we recommend you to use one of bellow:</p>
+<ul>
+<li>Hazelcast's XML configuration file - which is broadly referenced on its documentation page</li>
+<li>Hazelcast's programmatic API</li>
+</ul>
+<h3 id="usingthehazelcastsxmlconfigurationfile">Using the Hazelcast's XML configuration file</h3>
+<p>Define where is the <code>hazelcast.xml</code> file you want to use. As recommended, the bellow sample configuration suggests you to place the <code>hazelcast.xml</code> file at the <code>&lt;resources_dir&gt;/conf</code> directory.</p>
+<pre><code class="yml language-yml">server:
+  hazelcast:
+    config: "conf/hazelcast.xml"
+</code></pre>
+<p>Now, you can configure Hazelcast the same way is documented at <strong><a href="http://hazelcast.org/documentation/">Hazelcast's Manual</a></strong>.</p>
+<h3 id="configuringhazelcasttheprogrammaticway">Configuring Hazelcast: the programmatic way</h3>
+<p>Every time you start a Kikaha application you can be notified every time a new Hazelcast Instance will be used. This would allow you to configure Hazelcast globally, defining every single detail you need to have it ready for your use. The bellow code shows how one can be notified from Hazelcast Instances' configurations and configure a few elements before the instance be started.</p>
+<pre><code class="java language-java">@Slf4j
+@Singleton
+public class MyCacheConfiguration implements HazelcastConfigurationListener {
+
+    public final static String MAP_NAME = "my-cache";
+
+    @Override
+    public void onConfigurationLoaded(Config hzConfig) throws IOException {
+        MapConfig cacheMap = hzConfig.getMapConfigs().computeIfAbsent( MAP, k -&gt; new MapConfig().setName(k) );
+        configureIMapWithDefaults( cacheMap );
+    }
+
+    void configureIMapWithDefaults( MapConfig mapConfig ){
+        log.info( "Configuring cache '"+mapConfig.getName()+"'..." );
+        mapConfig.setEvictionPolicy( EvictionPolicy.LFU )
+            .setAsyncBackupCount( 1 )
+            .setReadBackupData( true )
+            .setMaxSizeConfig( new MaxSizeConfig(3000, MaxSizeConfig.MaxSizePolicy.PER_NODE ) );
+    }
+}
+</code></pre>
+<p>As you probably noticed, the above code implements the <code>kikaha.hazelcast.HazelcastConfigurationListener</code>. Every implementation of this interface will be notified with the <code>com.hazelcast.config.Config</code> when a new Hazelcast Instance is about to be created.</p>
+<h2 id="distributeddatastructures">Distributed Data Structures</h2>
+<p>Hazelcast offers distributed implementations of Java interfaces. You can find a Java interface list of all available structure Hazelcast offers <strong><a href="http://docs.hazelcast.org/docs/3.6/manual/html-single/index.html#distributed-data-structures">here</a></strong>.</p>
+<p>Despite being very useful, use Hazelcast could be very labor and verbose. Kikaha's Hazelcast module is a tiny layer that integrates most of these distributed structures with the CDI module, allowing developers to inject Hazelcast structures anywhere. Bellow, there is a class with all Hazelcast structures developers are allowed to inject on its classes.</p>
+<blockquote>
+  <p>Note that Hazelcast module uses the <code>javax.inject.Named</code> annotation to identify the Distributed Structure is about to be instantiated. It is a mandatory annotation.</p>
+</blockquote>
+<pre><code class="java language-java">import javax.inject.*;
+import java.util.*;
+import java.concurrency.atomic.*;
+
+import com.hazelcast.core.*;
+
+@Singleton
+public class SampleService {
+
+    @Inject
+    @Named( "atomic-booleans" )
+    IMap&lt;Long, AtomicBoolean&gt; map;
+
+    @Inject
+    @Named( "atomic-booleans" )
+    MultiMap&lt;Long, AtomicBoolean&gt; multimap;
+
+    @Inject
+    @Named( "atomic-booleans" )
+    IQueue&lt;AtomicBoolean&gt; queue;
+
+    @Inject
+    @Named( "atomic-booleans" )
+    ISet&lt;AtomicBoolean&gt; set;
+
+    @Inject
+    @Named( "atomic-booleans" )
+    IList&lt;AtomicBoolean&gt; list;
+
+    @Inject
+    @Named( "atomic-booleans" )
+    ITopic&lt;AtomicBoolean&gt; topic;
+
+    @Inject
+    @Named( "atomic-booleans" )
+    ReplicatedMap&lt;Long,AtomicBoolean&gt; replicatedMap; 
+
+    @Inject
+    @Named( "executor-service" )
+    IExecutorService executorService;
+
+    @Inject
+    @Named( "ilock" )
+    ILock lock;
+
+    @Inject
+    @Named( "id-generator" )
+    IdGenerator idGenerator;
+}
+</code></pre>
+<h2 id="programmaticallyconfiguringhazelcastsdistributesdatastrucutures">Programmatically configuring Hazelcast's Distributes Data Strucutures</h2>
+<p>It is possible to be notified when Kikaha creates an instance of any Hazelcast's Distributes Data Strucutures (DDS). It helps to fill the gap when Hazelcast doesn't provide a data loader ou data store for a specific DDS.</p>
+<p>Every time a distributable strucuture is created in the JVM, Kikaha searches for <code>kikaha.hazelcast.HazelcastProducedDataListener</code> implementations. Bellow is illustrated how is ossible to define the initial ID for a Hazelcast <code>IdGenerator</code>.</p>
+<blockquote>
+  <p>Note that, in order be reachable by the Kikaha's Hazelcast module at the start up time, you have to make all <code>kikaha.hazelcast.HazelcastProducedDataListener</code> implementations <strong><a href="doc:dependency-injection.html">injectable</a></strong>.</p>
+</blockquote>
+<pre><code class="java language-java">import kikaha.hazelcast.HazelcastProducedDataListener;
+import com.hazelcast.core.*;
+import javax.inject.*;
+
+@Singleton
+public class IdGeneratorLoader implements HazelcastProducedDataListener&lt;IdGenerator&gt; {
+
+  // Inject your dao or JDBC connection here to retrieve data from DB
+  @Inject IdGeneratorDao dao;
+
+  @Override
+  public void dataProduced( IdGenerator data ){
+    long lastId = dao.loadLastIdFromDatabase( data.getName() );
+    data.init( lastId );
+  }
+}
+</code></pre>
+<h2 id="distributedsessionmanagementwithhazelcast">Distributed Session Management with Hazelcast</h2>
+<p>As described at the <strong><a href="authentication-and-authorization.html">Authentication and authorization</a></strong> topic, Kikaha will store all logged in user's information into a <code>kikaha.core.security.SessionStore</code> implementation. Kikaha's Hazelcast module implements a SessionStore that store any Session (and its data) into a <code>com.hazelcast.core.IMap</code> called <code>session-cache</code>. Developers are encouraged to configure the <em>session-cache</em>'s eviction policy at the <code>hazelcast.xml</code> file, or programmatically, in order to avoid <code>OutOfMemoryException</code>.</p>
+<p>Basically, to setup Hazelcast as your Session Manager, once you had added <code>kikaha-hazelcast</code> as a dependency, you just need to configure the <code>kikaha.hazelcast.HazelcastSessionStore</code> as your session store on your <code>application.yml</code> file.</p>
+<pre><code class="yml language-yml"># application.yml
+server:
+  # Authentication configuration
+  auth:
+    # Using Hazelcast to store sessions from UI
+    session-store: kikaha.hazelcast.HazelcastSessionStore
+</code></pre>
+<p>Bellow a sample <code>hazelcast.xml</code> file, that evicts 25% of all stored session based on LRU eviction police. For more details about eviction policy, please consider read the <strong><a href="http://docs.hazelcast.org/docs/3.6/manual/html-single/index.html#evicting-map-entries">Hazelcast's Manual</a></strong> entry about this topic.</p>
+<pre><code class="xml language-xml">&lt;hazelcast
+    xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.6.xsd"
+    xmlns="http://www.hazelcast.com/schema/config" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+
+  &lt;map name="default"&gt;
+    &lt;time-to-live-seconds&gt;0&lt;/time-to-live-seconds&gt;
+    &lt;max-idle-seconds&gt;0&lt;/max-idle-seconds&gt;
+    &lt;eviction-policy&gt;LRU&lt;/eviction-policy&gt;
+    &lt;max-size policy="PER_NODE"&gt;5000&lt;/max-size&gt;
+    &lt;eviction-percentage&gt;25&lt;/eviction-percentage&gt;
+    &lt;min-eviction-check-millis&gt;100&lt;/min-eviction-check-millis&gt;
+  &lt;/map&gt;
+
+&lt;/hazelcast&gt;
+</code></pre>
+</div>
+
+<div class="g-column g-4-12 t-6-12 m-12-12">
+<div class="home-about--git-download-block">
+<h3>Welcome</h3>
+<!-- SIDE BAR -->
+<p>WELCOME
+<a href="About-kikaha.html">About</a>
+<a href="Kikaha-Philosophy.html">Kikaha philosophy</a></p>
+<p>GETTING STARTED
+<a href="Getting-Started-in-1-Minute.html">Getting started in 1 minute</a>
+<a href="Creating-a-Kikaha-maven-project.html">Creating a Kikaha maven project</a>
+<a href="Logging-Configuration.html">Logging configuration</a>
+<a href="Architecture-Overview.html">Architecture overview</a>
+<a href="Configuring-the-server.html">Configuring the server</a></p>
+<p>CORE FEATURES
+<a href="HTTP-and-HTTPS.html">HTTP and HTTPS</a>
+<a href="Routing-static-assets.html">Routing static assets</a>
+<a href="Dependency-Injection.html">Dependency injection</a>
+<a href="Authentication-and-Authorization.html">Authentication and authorization</a>
+<a href="Smart-Routes.html">Smart routes</a></p>
+<p>ESSENTIAL MODULES
+<a href="uRouting-API.html">μRouting API</a>
+<a href="Web-Socket-routing.html">WebSocket Routing</a>
+<a href="Database-Access.html">Database Connection Pool</a>
+<a href="JSON-with-Jackson.html">JSON with Jackson</a>
+<a href="Proto-Buffers.html">Protobuf</a>
+<a href="Mustache.html">Mustache Templates</a>
+<a href="Rocker-Templates.html">Rocker Templates</a>
+<a href="BCrypt.html">BCrypt</a></p>
+<p>CLOUD MODULES
+<a href="Consul.io.html">Consul.io</a>
+<a href="Codahale-Metrics.html">Codahale's Metrics</a>
+<a href="Auth0.html">Auth0 Single Sign-On</a>
+<a href="uWorkers.html">μWorkers - Actor-like API</a>
+<a href="Hazelcast.html">Hazelcast</a></p>
+<p>AWS-RELATED MODULES
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+IAM+Credentials&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+IAM+Credentials..html">AWS IAM Credentials</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+EC2&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+EC2..html">AWS EC2</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+SQS+Queues&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+SQS+Queues..html">AWS SQS queues</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+CloudWatch+Metrics&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+CloudWatch+Metrics..html">AWS CloudWatch metrics</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+ALB&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+Load+Balacer..html">AWS Application Load Balancer</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+Lambda&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+Lambda+Functions..html">AWS Lambda functions</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+X-RAY&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+X-RAY..html">AWS X-Ray</a></p>
+<p>TUTORIALS
+<a href="creating-your-first-http-route.html">Creating your first HTTP route</a>
+<a href="kikahas-command-line-interface-tool.html">Kikaha's command line interface</a>
+<a href="configuring-your-favorite-ide.html">Configuring your favorite IDE</a>
+<a href="Kikaha-Wro4j-Integration.html">Wro4j Integration</a></p>
+<p>ADVANCED TOPICS
+<a href="Creating-Custom-Modules.html">Creating custom modules</a>
+<a href="Routing-With-Undertow.html">Routing with Undertow's API</a>
+<a href="Creating-Custom-Cloud-Modules.html">Creating custom cloud modules</a></p>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,179 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Learn Git with beginner to advanced Git tutorials on workflows, git commands, git migration and code review.">
+<meta name="author" content="Atlassian">
+<link rel="canonical" href="https://www.atlassian.com/git"/>
+<title>Kikaha documentation</title>
+<link rel="stylesheet" href="site.css"/>
+<link href="https://fonts.googleapis.com/css?family=Sanchez:200,300,400,600" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Titillium+Web" rel="stylesheet">
+<script src="showdown.min.js">
+<script src="showdown-github.min.js">
+<script>
+
+</script>
+</head>
+<body class="wac git-home git">
+<div class="header">
+  <div class="container">
+    <span class="k">k</span>
+    <h1>Kikaha</h1>
+    <a href="https://blog.kikaha.io">blog</a>
+    <a href="https://github.com/Skullabs/kikaha">source code</a>
+  </div>
+</div>
+
+<div class="page-wrap">
+<div class="home-section home-about home-start">
+<div class="g-row container">
+
+<div class="g-column g-7-12 t-6-12 m-12-12">
+<!-- CONTENT -->
+<h1 id="smartroutes">Smart Routes</h1>
+<p>Smart Routes are routes that can change the default behavior of standard requests. With Smart Routes you can redirect, intercept, filter and also proxy requests to another server. There is five basic types of Smart Routes on Kikaha:</p>
+<ul>
+<li>Proxy Routes: where you can proxy specific requests to another server</li>
+<li>Rewrite Routes: permit to rewrite request paths (similar to Apache httpd's <code>mod_rewrite</code>)</li>
+<li>Redirect Routes: send redirect status (30x) for specific requests</li>
+<li>Filters: allow intercept and change any request before it hit the expected endpoint</li>
+<li>CORS: allow developers to configure how do Cross-Origin Requests should behave</li>
+</ul>
+<h2 id="proxingrequeststoanotherserverreverserouting">Proxing requests to another server (Reverse routing)</h2>
+<p>Assume that we have a restful application that mainly process PDF and turn its pages into PNG images. Despite the several REST endpoints exposed by the application, only <code>/api/pdf/process</code> takes a lot of CPU time making the entire application slow while one (or more) PDF is being processed.</p>
+<p>It is possible to delegate the request of <code>/api/pdf/process</code> to another server, avoiding the entire server starving from resources while PDFs is processed. The configuration bellow illustrates how is possible to achieve this.</p>
+<pre><code class="yml language-yml">server:
+  smart-routes:
+    reverse:
+      - { path: "/api/pdf/process", to: "http://process.pdf.localdomain/" }
+</code></pre>
+<p>At the above example, all requests on <code>/api/pdf/process</code> will be delegated to the host <code>process.pdf.localdomain</code>.</p>
+<p>Now, lets also assume that in our example there is also an indexing routine that takes too much CPU time of our server. Its endpoint is <code>/api/pdf/index</code>. It is possible to use placeholders to make a more versatile routing.</p>
+<pre><code class="yml language-yml">server:
+  smart-routes:
+    reverse:
+      - { path: "/api/pdf/{routine}", to: "http://{routine}.pdf.localdomain/" }
+</code></pre>
+<p>In this example, not only <code>/api/pdf/process</code> will be delegated to the host <code>process.pdf.localdomain</code>, also <code>/api/pdf/index</code> will be routed to <code>index.pdf.localdomain</code> too.</p>
+<h2 id="internallyrewritingsomerequestsuris">Internally rewriting some requests URIs</h2>
+<p>The bellow configuration illustrates how you can use Kikaha's <em>rewrite rule</em> to serve multiple static sites in a single server instance.</p>
+<pre><code class="yml language-yml">server:
+  smart-routes:
+    rewrite:
+      - { virtual-host: "{tenant}.static.net", path: "{path}", to: "{tenant}/{path}" }
+</code></pre>
+<p>In this example, once a request comes to <em>http://customer1.static.net/products/details.html</em>, it will render the file <em>details.html</em> placed at the folder <em>customer1/products</em>.</p>
+<h2 id="redirectinguris">Redirecting URIs</h2>
+<p>Bellow is a configuration that behaves quite similar to the above configuration, but instead of internally rewriting the path to match internal endpoints, it will response a 303 response which the browse will be responsible to make another call at the just specified address.</p>
+<pre><code class="yml language-yml">server:
+  smart-routes:
+    redirect:
+      - { virtual-host: "{tenant}.static.net", path: "{path}", to: "{tenant}/{path}" }
+</code></pre>
+<h2 id="filteringrequests">Filtering requests</h2>
+<p>If create managed implementations of <code>kikaha.core.modules.smart.Filter</code> interface, you would be able to intercept any incomming request before it reaches any of the internal REST endpoints. The bellow sample code shows how you can filter incoming requests and decide if you should or not avoid the browser to access a specific endpoint.</p>
+<pre><code class="java language-java">import kikaha.core.modules.smart.*;
+import kikaha.urouting.*;
+import javax.inject.*;
+
+@Singleton
+public class MyInterceptionFilter implements Filter {
+
+  @Inject UndertowHelper undertow;
+
+  public void doFilter(HttpServerExchange exchange, FilterChain chain) {
+    SimpleExchange simpleExchange = undertow.simplify( exchange );
+    long postId = simpleExchange.getQueryParameter( "postId", Long.class );
+
+    if ( "/api/abc".equals( simpleExchange.getRelativePath() ) &amp;&amp; postId &gt; 1000 )
+      simpleExchange.sendResponse( DefaultResponse.forbiden() );
+    else
+      chain.runNext();
+  }
+}
+</code></pre>
+<p>Note that it is using the Simplified Undertow API, which you can see more details <strong><a href="doc:routing-with-undertow.html">Routing with Undertow API</a></strong>.</p>
+<h2 id="crossoriginrequests">Cross-Origin Requests</h2>
+<p>Most of recent browsers can handle Cross-Origin Request if the server is properly configured. Kikaha provides a <em>Filter</em> that intercept requests and handle CORS requests. Bellow is the available parameters to configure CORS requests with Kikaha.</p>
+<pre><code class="yml language-yml">server:
+  smart-routes:
+    cors:
+      enabled: false
+      always-allow-origin: false
+      always-allow-credentials: false
+      allowed-methods: [ "GET" ]
+      allowed-hosts:
+</code></pre>
+<p>All CORS-related parameters are placed inside the <code>server.smart-routes.cors</code> path at the configuration file:</p>
+<ul>
+<li><strong>enabled</strong>: defines where CORS filters is enabled</li>
+<li><strong>allowed-methods</strong>: define which HTTP Methods are allowed.</li>
+<li><strong>allowed-hosts</strong>: define which sources could make CORS requests on your application. It could be empty if the <code>always-allow-origin</code> is set to <code>true</code>.</li>
+<li><strong>always-allow-origin</strong>: (optional - default false) if <code>true</code>, it will accept of any source</li>
+<li><strong>always-allow-credentials</strong>: (optional - default false) if <code>true</code>, it will accept cookies from any source.</li>
+</ul>
+</div>
+
+<div class="g-column g-4-12 t-6-12 m-12-12">
+<div class="home-about--git-download-block">
+<h3>Welcome</h3>
+<!-- SIDE BAR -->
+<p>WELCOME
+<a href="About-kikaha.html">About</a>
+<a href="Kikaha-Philosophy.html">Kikaha philosophy</a></p>
+<p>GETTING STARTED
+<a href="Getting-Started-in-1-Minute.html">Getting started in 1 minute</a>
+<a href="Creating-a-Kikaha-maven-project.html">Creating a Kikaha maven project</a>
+<a href="Logging-Configuration.html">Logging configuration</a>
+<a href="Architecture-Overview.html">Architecture overview</a>
+<a href="Configuring-the-server.html">Configuring the server</a></p>
+<p>CORE FEATURES
+<a href="HTTP-and-HTTPS.html">HTTP and HTTPS</a>
+<a href="Routing-static-assets.html">Routing static assets</a>
+<a href="Dependency-Injection.html">Dependency injection</a>
+<a href="Authentication-and-Authorization.html">Authentication and authorization</a>
+<a href="Smart-Routes.html">Smart routes</a></p>
+<p>ESSENTIAL MODULES
+<a href="uRouting-API.html">μRouting API</a>
+<a href="Web-Socket-routing.html">WebSocket Routing</a>
+<a href="Database-Access.html">Database Connection Pool</a>
+<a href="JSON-with-Jackson.html">JSON with Jackson</a>
+<a href="Proto-Buffers.html">Protobuf</a>
+<a href="Mustache.html">Mustache Templates</a>
+<a href="Rocker-Templates.html">Rocker Templates</a>
+<a href="BCrypt.html">BCrypt</a></p>
+<p>CLOUD MODULES
+<a href="Consul.io.html">Consul.io</a>
+<a href="Codahale-Metrics.html">Codahale's Metrics</a>
+<a href="Auth0.html">Auth0 Single Sign-On</a>
+<a href="uWorkers.html">μWorkers - Actor-like API</a>
+<a href="Hazelcast.html">Hazelcast</a></p>
+<p>AWS-RELATED MODULES
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+IAM+Credentials&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+IAM+Credentials..html">AWS IAM Credentials</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+EC2&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+EC2..html">AWS EC2</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+SQS+Queues&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+SQS+Queues..html">AWS SQS queues</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+CloudWatch+Metrics&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+CloudWatch+Metrics..html">AWS CloudWatch metrics</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+ALB&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+Load+Balacer..html">AWS Application Load Balancer</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+Lambda&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+Lambda+Functions..html">AWS Lambda functions</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+X-RAY&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+X-RAY..html">AWS X-Ray</a></p>
+<p>TUTORIALS
+<a href="creating-your-first-http-route.html">Creating your first HTTP route</a>
+<a href="kikahas-command-line-interface-tool.html">Kikaha's command line interface</a>
+<a href="configuring-your-favorite-ide.html">Configuring your favorite IDE</a>
+<a href="Kikaha-Wro4j-Integration.html">Wro4j Integration</a></p>
+<p>ADVANCED TOPICS
+<a href="Creating-Custom-Modules.html">Creating custom modules</a>
+<a href="Routing-With-Undertow.html">Routing with Undertow's API</a>
+<a href="Creating-Custom-Cloud-Modules.html">Creating custom cloud modules</a></p>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</body>
+</html>
