@@ -34,10 +34,67 @@
 
 <div class="g-column g-7-12 t-6-12 m-12-12">
 <!-- CONTENT -->
+<h1 id="deployingapplicationsonaws">Deploying applications on AWS</h1>
+<p>There are many ways to deploy AWS applications. On this guide we will talk about S3 and Code Deploy and how we would be able to use both of them to automate your deployment routine.</p>
 <blockquote>
-  <p>We didn't finish this page, yet! 
-  In case of doubts please ask for help by opening an issue <a href="https://github.com/Skullabs/kikaha/issues/new">here</a>.</p>
+  <p>Before you go further, ensure you have your IAM credentials properly <a href="AWS-IAM-Credentials.html">configured on your application</a> and EC2 instances.</p>
 </blockquote>
+<h1 id="deployartifactstoawss3">Deploy artifacts to AWS S3</h1>
+<p>You can easily send your project artifact to a S3 bucket. Here are the steps you need to do:</p>
+<ol>
+<li><p>Create a <a href="http://docs.aws.amazon.com/AmazonS3/latest/gsg/CreatingABucket.html">S3 Bucket</a>. On this guide, we will assume you have named your bucket as 'deployment-bucket'.</p></li>
+<li><p>Create an IAM Policy (or update an already created one) and make sure that grants the following <em>actions</em>:</p></li>
+</ol>
+<pre><code class="json language-json">"s3:PutObject"
+</code></pre>
+<ol start="3">
+<li>Copy and paste the following properties on you project definition file (pom.xml).</li>
+</ol>
+<pre><code class="xml language-xml">&lt;config.plugins.aws.s3.enabled&gt;true&lt;/config.plugins.aws.s3.enabled&gt;
+&lt;config.plugins.aws.s3.region&gt;us-east-1&lt;/config.plugins.aws.s3.region&gt;
+&lt;config.plugins.aws.s3.bucket&gt;deployment-bucket&lt;/config.plugins.aws.s3.bucket&gt;
+&lt;config.plugins.jar.enabled&gt;true&lt;/config.plugins.jar.enabled&gt;
+</code></pre>
+<p>Notes about S3 plugin:</p>
+<ul>
+<li>config.plugins.aws.s3.enabled: it turns on the S3 deployment plugin</li>
+<li>config.plugins.aws.s3.region: is region your bucket is actually placed</li>
+<li>config.plugins.aws.s3.bucket: the bucket name the plugin should send the artifact</li>
+</ul>
+<p>Notes about the Jar plugin:</p>
+<ul>
+<li>config.plugins.jar.enabled: if true, will generate a runnable jar from your project. </li>
+</ul>
+<ol>
+<li>Run 'kikaha deploy' or 'mvn clean deploy' in order to send your just generated artifact to the S3 bucket.</li>
+</ol>
+<h2 id="deployartifactsthroughawscodedeploy">Deploy artifacts through AWS Code Deploy</h2>
+<p>Although we can easily deploy anything to S3, you probably will notice there is a lot more to do in order to ensure your application is up and running right after you deploy it to an S3 bucket.
+The best to get it done easily is CodeDeploy. So, lets take a see how we can setup a Kikaha project to deploy applications with CodeDeploy.</p>
+<ol>
+<li><p>Follow the guide above and configure your project to deploy on S3. AWS CodeDeploy can retrieve artifacts from S3 buckets and deploy them on your EC2 instances.</p></li>
+<li><p>Follow <strong>only</strong> the two following steps from this <a href="http://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-steps.html">AWS CodeDeploy Guide</a>. We will assume you created an Application Deployment named 'microservice1.example.com' and a deployment group named 'production':</p></li>
+</ol>
+<ul>
+<li>Configure your instances: it covers how to make your instances ready to receive a deployable artifact and start it once a deployment is ready to be deployed.</li>
+<li>Creating Your Application and Deployment Groups.</li>
+</ul>
+<ol>
+<li>Once you've configured the S3 deployment, include the following properties on your pom.xml file.</li>
+</ol>
+<pre><code class="xml language-xml">&lt;config.plugins.aws.s3.useCodeDeploy&gt;true&lt;/config.plugins.aws.s3.useCodeDeploy&gt;
+&lt;config.plugins.aws.s3.codeDeployApplicationName&gt;microservice1.example.com&lt;/config.plugins.aws.s3.codeDeployApplicationName&gt;
+&lt;config.plugins.aws.s3.codeDeployDeploymentGroupName&gt;production&lt;/config.plugins.aws.s3.codeDeployDeploymentGroupName&gt;
+</code></pre>
+<p>Notes about the CodeDeploy plugin:</p>
+<ul>
+<li>config.plugins.aws.s3.useCodeDeploy: if true, will notify your Application Deployment that a new revision is ready</li>
+<li>config.plugins.aws.s3.codeDeployApplicationName: the Application Deployment</li>
+<li>config.plugins.aws.s3.codeDeployDeploymentGroupName: the deployment group you defined for this app</li>
+</ul>
+<ol>
+<li>If everything went right, you should be able to run 'kikaha deploy' or 'mvn clean deploy' and see your EC2 instances being automatically updated.</li>
+</ol>
 </div>
 
 <div class="g-column g-4-12 t-6-12 m-12-12">

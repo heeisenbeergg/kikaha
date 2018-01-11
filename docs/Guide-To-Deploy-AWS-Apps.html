@@ -1,0 +1,244 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Learn Git with beginner to advanced Git tutorials on workflows, git commands, git migration and code review.">
+<meta name="author" content="Atlassian">
+<link rel="canonical" href="https://www.atlassian.com/git"/>
+<title>Kikaha documentation</title>
+<link rel="stylesheet" href="site.css"/>
+<link href="https://fonts.googleapis.com/css?family=Sanchez:200,300,400,600" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Titillium+Web" rel="stylesheet">
+<script src="showdown.min.js">
+<script src="showdown-github.min.js">
+<script>
+
+</script>
+</head>
+<body class="wac git-home git">
+<div class="header">
+  <div class="container">
+    <span class="k">k</span>
+    <h1>Kikaha</h1>
+    <a href="https://blog.kikaha.io">blog</a>
+    <a href="https://github.com/Skullabs/kikaha">source code</a>
+  </div>
+</div>
+
+<div class="page-wrap">
+<div class="home-section home-about home-start">
+<div class="g-row container">
+
+<div class="g-column g-7-12 t-6-12 m-12-12">
+<!-- CONTENT -->
+<h1 id="guidetodeploykikahaappsatamazon">Guide to deploy Kikaha apps at Amazon</h1>
+<p>The objective of this guide is show basic features kikaha offers out-of-box which may be useful to make deployment and monitoring easier on Amazon.</p>
+<h2 id="requirements">Requirements</h2>
+<p>This guide is focused on <code>2.1.x</code> version of Kikaha which at the date of this wrinting is still under beta state. Its release date is planed to June, 2017. Also this guide assumes you are familiar with Amazon Web Services and how services are authenticated on AWS.</p>
+<p>For more information about AWS, please consult this <a href="https://aws.amazon.com/whitepapers/overview-of-amazon-web-services/">guide</a>.</p>
+<h2 id="awscloudmodulesoverview">AWS Cloud Modules Overview</h2>
+<p>Out-of-box Kikaha provides some features which integrates with AWS services:</p>
+<ul>
+<li><p>Versatile configuration mechanism to retrieve credentials</p></li>
+<li><p>Auto Join on AWS Application Load Balancer</p></li>
+<li><p>Deploy artifacts to AWS S3</p></li>
+<li><p>Deploy artifacts through AWS Code Deploy</p></li>
+<li><p>Read configurations from AWS EC2 tags</p></li>
+<li><p>Distribute Task Consumers with AWS SQS</p></li>
+<li><p>Monitore your application throughput with AWS X-Ray</p></li>
+<li><p>Create alarms from JVM metrics with CloudWatch</p></li>
+<li><p>Deploy serverless application with AWS Lambda</p></li>
+<li><p>Distribute Task Consumers with AWS SQS</p></li>
+</ul>
+<pre><code>TODO
+</code></pre>
+<ul>
+<li>Monitore your application throughput with AWS X-Ray</li>
+</ul>
+<pre><code>TODO
+</code></pre>
+<ul>
+<li>Deploy serverless application with AWS Lambda</li>
+</ul>
+<pre><code>TODO
+</code></pre>
+<h2 id="creatingaiampolicy">Creating a IAM policy</h2>
+<p>In order to properly communicate with AWS services you have to create an IAM Policy that allows Kikaha to execute tasks on your behalf. For the sake of simplicity, and make this guide a little less verbose, we will not describe a whole IAM policy that may or not be used for each AWS resource Kikaha may use, but describe the set of "actions" required for the above-described features as needed.</p>
+<h2 id="versatileconfigurationmechanismtoretrievecredentials">Versatile configuration mechanism to retrieve credentials</h2>
+<p>Maybe the most important think one should care about when is designing an application that interacts with AWS services is its credential model. By default, on Kikaha applications, any <a href="http://get.kikaha.io/docs/dependency-injection#section-making-implementations-injectable">managed class</a> are able to inject <code>com.amazonaws.auth.AWSCredentials</code> definitions (or <code>AmazonWebServiceConfiguration</code>, which basically contains <code>com.amazonaws.auth.AWSCredentialsProvider</code> and <code>com.amazonaws.regions.Regions</code>). The bellow sample code shows how you can do this.</p>
+<pre><code class="java language-java">public class MyManagedClass {
+
+  @Inject AWSCredentials credentials;
+  @Inject AmazonWebServiceConfiguration awsConfiguration;
+}
+</code></pre>
+<h3 id="using_iamrolesforamazonec2_tosetupcredentialsandregion">Using <em>IAM Roles for Amazon EC2</em> to setup credentials and region</h3>
+<p>As stated by the <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html">IAM Roles for Amazon EC2</a> guide, attach a IAM Role to your EC2 instances is a good strategy for managing credentials for your applications. The default Kikaha configuration will respect the <a href="http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html">Default Credential Chain</a> ensuring that you can provide credentials by Environment Variables, EC2 Roles, ECS container credentials and the default credential profiles file (usually located at <code>{USER HOME DIR}/.aws/credentials</code> file).</p>
+<h3 id="using_applicationyml_tosetupcredentialsandregion">Using <em>application.yml</em> to setup credentials and region</h3>
+<p>Kikaha also provide an alternative mechanism, just in case you want to configure keep your credential configuration along with other configuration entries at <code>application.yml</code> file for any reason. Basically, all you need to do is define <code>kikaha.cloud.aws.iam.AmazonCredentialsFactory$Yml</code> as credential factory for AWS services, as shown bellow.</p>
+<pre><code class="yml language-yml"># application.yml
+server:
+  aws:
+    credentials-factory: kikaha.cloud.aws.iam.AmazonCredentialsFactory$Yml
+    iam-policy:
+      access-key-id: ACCESS_KEY
+      secret-access-key: SECRET_ACCESS_KEY
+</code></pre>
+<p>As you can see, you would be able to define your credentials on the alias called <code>default</code> at the service named <code>iam-policy</code>. Under the hood, this <strong>Yml</strong>-based configuration follow the convention <em>server.aws.<service></em> to provide information regarding an specific module, in this case, <em>iam-policy</em>.</p>
+<h3 id="configuringtheregionyourawsclients">Configuring the Region your AWS clients</h3>
+<p>It is also possible to configure which region an AWS resource should use. Basically, you can set the attribute <code>_server.aws.&lt;service&gt;._region</code>, where <code>service</code> represents the AWS resource you want to define. Bellow, is the default yml configuration Kikaha uses.</p>
+<pre><code class="yml language-yml">server:
+  aws:
+    # fall back configuration for every AWS service
+    default:
+      region: "us-east-1"
+
+    # IAM service
+    iam-policy:
+        # access-key-id: ACCESS_KEY
+        # secret-access-key: SECRET_ACCESS_KEY
+
+    # EC2 service
+    ec2:
+      #region: "us-east-1"
+
+    # ELB service
+    elb:
+      #region: "us-east-1"
+
+    # SQS service
+    sqs:
+      #region: "us-east-1"
+
+    # CloudWatch service
+    cloudwatch:
+      #region: "us-east-1"
+
+    # X-Ray service does not provide a way to setup the region.
+    # During the tests, it seems to send to the current region your appliction is actually running.
+    x-ray:
+</code></pre>
+<h2 id="deployartifactstoawss3">Deploy artifacts to AWS S3</h2>
+<p>You can easily send your project artifact to a S3 bucket. Here are the steps you need to do:</p>
+<ol>
+<li><p>Create a <a href="http://docs.aws.amazon.com/AmazonS3/latest/gsg/CreatingABucket.html">S3 Bucket</a>. On this guide, we will assume you have named your bucket as 'deployment-bucket'.</p></li>
+<li><p>Create an IAM Policy (or update an already created one) and make sure that grants the following <em>actions</em>:</p></li>
+</ol>
+<pre><code class="json language-json">"s3:PutObject"
+</code></pre>
+<ol start="3">
+<li>Copy and paste the following properties on you project definition file (pom.xml).</li>
+</ol>
+<pre><code class="xml language-xml">&lt;config.plugins.aws.s3.enabled&gt;true&lt;/config.plugins.aws.s3.enabled&gt;
+&lt;config.plugins.aws.s3.region&gt;us-east-1&lt;/config.plugins.aws.s3.region&gt;
+&lt;config.plugins.aws.s3.bucket&gt;deployment-bucket&lt;/config.plugins.aws.s3.bucket&gt;
+&lt;config.plugins.jar.enabled&gt;true&lt;/config.plugins.jar.enabled&gt;
+</code></pre>
+<p>Notes about S3 plugin:</p>
+<ul>
+<li>config.plugins.aws.s3.enabled: it turns on the S3 deployment plugin</li>
+<li>config.plugins.aws.s3.region: is region your bucket is actually placed</li>
+<li>config.plugins.aws.s3.bucket: the bucket name the plugin should send the artifact</li>
+</ul>
+<p>Notes about the Jar plugin:</p>
+<ul>
+<li>config.plugins.jar.enabled: if true, will generate a runnable jar from your project. </li>
+</ul>
+<ol>
+<li>Run 'kikaha deploy' or 'mvn clean deploy' in order to send your just generated artifact to the S3 bucket.</li>
+</ol>
+<h2 id="deployartifactsthroughawscodedeploy">Deploy artifacts through AWS Code Deploy</h2>
+<p>You can also notify your AWS CodeDeploy instance to deploy artifacts on your servers.</p>
+<ol>
+<li><p>Follow the guide above and configure your project to deploy on S3. AWS CodeDeploy can retrieve artifacts from S3 buckets and deploy them on your EC2 instances.</p></li>
+<li><p>Follow <strong>only</strong> the two following steps from this <a href="http://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-steps.html">AWS CodeDeploy Guide</a>. We will assume you created an Application Deployment named 'microservice1.example.com' and a deployment group named 'production':</p></li>
+</ol>
+<ul>
+<li>Configure your instances</li>
+<li>Creating Your Application and Deployment Groups</li>
+</ul>
+<ol>
+<li>Once you've configured the S3 deployment, include the following properties on your pom.xml file.</li>
+</ol>
+<pre><code class="xml language-xml">&lt;config.plugins.aws.s3.useCodeDeploy&gt;true&lt;/config.plugins.aws.s3.useCodeDeploy&gt;
+&lt;config.plugins.aws.s3.codeDeployApplicationName&gt;microservice1.example.com&lt;/config.plugins.aws.s3.codeDeployApplicationName&gt;
+&lt;config.plugins.aws.s3.codeDeployDeploymentGroupName&gt;production&lt;/config.plugins.aws.s3.codeDeployDeploymentGroupName&gt;
+</code></pre>
+<p>Notes about the CodeDeploy plugin:</p>
+<ul>
+<li>config.plugins.aws.s3.useCodeDeploy: if true, will notify your Application Deployment that a new revision is ready</li>
+<li>config.plugins.aws.s3.codeDeployApplicationName: the Application Deployment</li>
+<li>config.plugins.aws.s3.codeDeployDeploymentGroupName: the deployment group you defined for this app</li>
+</ul>
+<ol>
+<li>If everything went right, you should be able to run 'kikaha deploy' or 'mvn clean deploy' and see your EC2 instances being automatically updated.</li>
+</ol>
+<h2 id="autojoinonawsapplicationloadbalancer">Auto Join on AWS Application Load Balancer</h2>
+<pre><code>TODO
+</code></pre>
+</div>
+
+<div class="g-column g-4-12 t-6-12 m-12-12">
+<div class="home-about--git-download-block">
+<h3>Welcome</h3>
+<!-- SIDE BAR -->
+<p>WELCOME
+<a href="About-kikaha.html">About</a>
+<a href="Kikaha-Philosophy.html">Kikaha philosophy</a></p>
+<p>GETTING STARTED
+<a href="Getting-Started-in-1-Minute.html">Getting started in 1 minute</a>
+<a href="Creating-a-Kikaha-maven-project.html">Creating a Kikaha maven project</a>
+<a href="Logging-Configuration.html">Logging configuration</a>
+<a href="Architecture-Overview.html">Architecture overview</a>
+<a href="Configuring-the-server.html">Configuring the server</a></p>
+<p>CORE FEATURES
+<a href="HTTP-and-HTTPS.html">HTTP and HTTPS</a>
+<a href="Routing-static-assets.html">Routing static assets</a>
+<a href="Dependency-Injection.html">Dependency injection</a>
+<a href="Authentication-and-Authorization.html">Authentication and authorization</a>
+<a href="Smart-Routes.html">Smart routes</a></p>
+<p>ESSENTIAL MODULES
+<a href="uRouting-API.html">μRouting API</a>
+<a href="Web-Socket-routing.html">WebSocket Routing</a>
+<a href="Database-Access.html">Database Connection Pool</a>
+<a href="JSON-with-Jackson.html">JSON with Jackson</a>
+<a href="Proto-Buffers.html">Protobuf</a>
+<a href="Mustache.html">Mustache Templates</a>
+<a href="Rocker-Templates.html">Rocker Templates</a>
+<a href="BCrypt.html">BCrypt</a></p>
+<p>CLOUD MODULES
+<a href="Consul.io.html">Consul.io</a>
+<a href="Codahale-Metrics.html">Codahale's Metrics</a>
+<a href="Auth0.html">Auth0 Single Sign-On</a>
+<a href="uWorkers.html">μWorkers - Actor-like API</a>
+<a href="Hazelcast.html">Hazelcast</a></p>
+<p>AWS-RELATED MODULES
+<a href="AWS-Related-Modules.html">Overview of AWS-Related Modules</a>
+<a href="Deploying-Applications-to-AWS.html">Deploying Applications on AWS</a>
+<a href="AWS-IAM-Credentials.html">AWS IAM Credentials</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+EC2&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+EC2..html">AWS EC2</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+SQS+Queues&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+SQS+Queues..html">AWS SQS queues</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+CloudWatch+Metrics&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+CloudWatch+Metrics..html">AWS CloudWatch metrics</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+ALB&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+Load+Balacer..html">AWS Application Load Balancer</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+Lambda&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+Lambda+Functions..html">AWS Lambda functions</a>
+<a href="https://github.com/Skullabs/kikaha/issues/new?labels=documentation&title=AWS+X-RAY&body=It+would+be+great+to+have+a+detailed+documentation+about+AWS+X-RAY..html">AWS X-Ray</a></p>
+<p>TUTORIALS
+<a href="creating-your-first-http-route.html">Creating your first HTTP route</a>
+<a href="kikahas-command-line-interface-tool.html">Kikaha's command line interface</a>
+<a href="configuring-your-favorite-ide.html">Configuring your favorite IDE</a>
+<a href="Kikaha-Wro4j-Integration.html">Wro4j Integration</a></p>
+<p>ADVANCED TOPICS
+<a href="Creating-Custom-Modules.html">Creating custom modules</a>
+<a href="Routing-With-Undertow.html">Routing with Undertow's API</a>
+<a href="Creating-Custom-Cloud-Modules.html">Creating custom cloud modules</a></p>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</body>
+</html>
