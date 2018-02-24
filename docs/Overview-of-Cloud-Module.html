@@ -34,10 +34,67 @@
 
 <div class="g-column g-7-12 t-6-12 m-12-12">
 <!-- CONTENT -->
-<blockquote>
-  <p>We didn't finish this page, yet! 
-  In case of doubts please ask for help by opening an issue <a href="https://github.com/Skullabs/kikaha/issues/new">here</a>.</p>
-</blockquote>
+<h1 id="overviewofcloudmodule">Overview of Cloud Module</h1>
+<p>The Cloud Module contains a set of conventions and APIs that helps the developer to design an application well suited to cloud environments. Its core features is provided by <code>kikaha-cloud</code> module and its main APIs are described on the following topics.</p>
+<h3 id="applicationdataapi">ApplicationData API</h3>
+<p>This API provides a simple way to gather the basic identification data regarding your application and its runtime environment. All cloud-related modules depends on this configuration in order to provide a better experience configuring your application on a cloud environment.</p>
+<p>The bellow snippet code shows how one can have access to this API.</p>
+<pre><code class="java language-java">public class SampleService {
+
+  @Inject ApplicationData appData;
+
+  // print sibling nodes on your cluster application
+  public void printSiblingNodesLocalAddress(){
+    applicationData.getSiblingNodesOnTheCluster()
+        .forEach( n -&gt; System.out.println( n.getLocalAddress() ) );
+  }
+}
+</code></pre>
+<p>Only a few configuration parameters should be properly configured before start a kikaha application that uses the <code>kikaha-cloud</code> module:</p>
+<ul>
+<li>Name (<code>server.smart-server.application.name</code>): It is highly recommended that you override this with an unique identifier of your application cluster on your Data Center. It helps the cloud module to distinguish your application on an environment that have more than one micro-service running on the same Data Center.</li>
+<li>Version (<code>server.smart-server.application.name</code>): If you have more than one version of your application running at the same time on the same Data Center it is also highly recommended that you use override version attribute with its respective value for the same reason described above.</li>
+</ul>
+<p>Here is how your <code>application.yml</code> file should look like:</p>
+<pre><code class="yml language-yml">server:
+  smart-server:
+    application:
+      name: "capacitor"
+      version: "1.0.0"
+</code></pre>
+<h3 id="serviceregistryapi">ServiceRegistry API</h3>
+<p>Responsible for a manual cluster management of your application.</p>
+<p><code>TODO</code></p>
+<h3 id="machineidentificationapi">MachineIdentification API</h3>
+<p>Identify which node your application is actually running.</p>
+<p><code>TODO</code></p>
+<h3 id="traceidapi">TraceID API</h3>
+<p>Identify if the current request was already started on other application or node.</p>
+<p><code>TODO</code></p>
+<h2 id="outofboxcloudrelatedmodules">Out-of-box Cloud-Related Modules</h2>
+<p>Kikaha is shipped with a few cloud-related modules which may be very handy while deploying a cloud application:</p>
+<ul>
+<li>DropWizard/Codahale's Metrics</li>
+<li>Consul.io</li>
+<li>Hazelcast</li>
+<li>AWS Integration Modules</li>
+</ul>
+<h3 id="dropwizardcodahalesmetrics">DropWizard/Codahale's Metrics</h3>
+<p>Codahale's team did an impressive job designing a very good API to deal with application metrics. The <code>kikaha-cloud-metrics</code> is a tiny layer for the following features:</p>
+<ul>
+<li>Metric API - Allows you to measure and aggregate data and report it to a Metric Store</li>
+<li>Health Check API - Create Health-Check points to verify if your application node still healthy</li>
+</ul>
+<h3 id="consulio">Consul.io</h3>
+<p>Consul.io is probably the most interesting Service Discovery application available at the market. The <code>kikaha-cloud-consul</code> module provide tight integration with the following Consul.io features:</p>
+<ul>
+<li>Service Discovery</li>
+<li>Key-Value Configuration</li>
+</ul>
+<h3 id="hazelcast">Hazelcast</h3>
+<p><code>TODO</code></p>
+<h3 id="awsintegrationmodules">AWS Integration Modules</h3>
+<p><code>TODO</code></p>
 </div>
 
 <div class="g-column g-4-12 t-6-12 m-12-12">

@@ -42,15 +42,13 @@
 <li><em>Session Store</em>: defines how to sessions are managed on the server.</li>
 <li><em>Password Encoder</em>: defines how passwords are stored and matched.</li>
 </ul>
-<h2 id="authenticationrules">Authentication Rules</h2>
-<pre><code>TODO
-</code></pre>
 <h2 id="authenticationmechanisms">Authentication Mechanisms</h2>
 <p>Authentication mechanisms is responsible for extract credentials from HTTP requests. Usually they does not check if the credentials are valid, but delegates the validation to the IdentityManager defined on the matched Authentication Rule. Out-of-box only a few Authentication Mechanisms are provided. They are very common and allow developers to get started very quickly. Bellow they are listed and identified by its own <code>alias</code>:</p>
 <ul>
 <li><em>basic</em>: The implementation of Http's Basic Authentication.</li>
 <li><em>form</em>: The Form-based authentication. It will enforce security by requiring user to provide their credentials through a HTML form.</li>
 <li><em>json</em>: Will receive the credentials through a HTTP POST of a JSON object. This mechanism requires <a href="https://github.com/Skullabs/kikaha/tree/master/kikaha-modules/kikaha-jackson">kikaha-jackson</a> module.</li>
+<li><em>default</em>: Points to the "basic" one.</li>
 </ul>
 <p>Now lets talk about its <em>alias</em>. All Authentication Mechanism should be defined on the configuration entry <code>server.auth.authentication-mechanisms</code> on a <code>alias: class.Name</code> form (see sample the configuration file bellow). The alias, as we discussed before, are used on the Authentication Rules and avoids you to repeat the Authentication Mechanism's Class Canonical Name every time you need to use it to protect a specific resource.</p>
 <p>Here are a sample code with the default Authentication Mechanisms that comes out-of-box with Kikaha:</p>
@@ -59,6 +57,7 @@
     auth-mechanisms:
 
       # available on kikaha-core's module
+      default: kikaha.core.modules.security.BasicAuthenticationMechanism
       basic: kikaha.core.modules.security.BasicAuthenticationMechanism
       form: kikaha.core.modules.security.FormAuthenticationMechanism
 
@@ -67,13 +66,14 @@
 </code></pre>
 <p>If none of the above described mechanisms fits your needs you can easily create your own by implementing the interface <code>kikaha.core.modules.security.AuthenticationMechanism</code> and defining an alias for it. Please, keep in mind that cood Authentication Mechanisms usually delegates the Credential Validation to a proper IdentityManager.</p>
 <h2 id="identitymanagers">Identity Managers</h2>
-<p>Identity Managers are responsible for ensure credentials are valid. Also, is its responsibility retrieve the <code>Account</code> and its <code>Roles</code> from the place you've stored your data. Out-of-box there a few Identity Managers available:</p>
+<p>Identity Managers are responsible for ensure credentials are valid. It is also responsible to retrieve the <code>Account</code> and its <code>Roles</code> from the place you've stored your data. Out-of-box there a few Identity Managers available:</p>
 <ul>
-<li>"fixed": Uses a fixed username and password, defined on the configuration file, as the only valid credential</li>
-<li>"db-auth": Uses a Database connection to validate credentials.</li>
+<li><em>fixed</em>: Uses a fixed username and password, defined on the configuration file, as the only valid credential</li>
+<li><em>db-auth</em>: Uses a Database connection to validate credentials.</li>
+<li><em>default</em>: Points to the "fixed" one.</li>
 </ul>
-<p>, the only a <code>Fixed User and Password</code> identity manager is provided. It is a fast way to define a username and a password to authenticate a user while you are developing a software. A more sophisticated Identity Manager could be developed by implementing the <code>kikaha.core.modules.security.IdentityManager</code> interface. A much simpler approach is to extends <code>kikaha.core.modules.security.AbstractPasswordBasedIdentityManager</code>.</p>
 <h3 id="customidentitymanager">Custom Identity Manager</h3>
+<p>A more sophisticated Identity Manager could be developed by implementing the <code>kikaha.core.modules.security.IdentityManager</code> interface. A much simpler approach is to extends <code>kikaha.core.modules.security.AbstractPasswordBasedIdentityManager</code>.</p>
 <p>The code bellow illustrates how to create your own Identity Manager with fixed username and password. Developers are encouraged to follow this pattern to provide their own Identity Manager.</p>
 <pre><code class="java language-java">package sample;
 import kikaha.core.modules.security.*;
@@ -98,141 +98,108 @@ public class CustomIdentityManager extends AbstractPasswordBasedIdentityManager 
     identity-manager:
       custom: sample.CustomIdentityManager
 </code></pre>
-<h2 id="sessionstore">Session Store</h2>
 <h2 id="passwordencoders">Password Encoders</h2>
-<p>password-encoder: kikaha.core.modules.security.PlainTextPasswordEncoder</p>
-<blockquote>
-  <p><strong>Note:</strong> In order to use the <strong>distributed</strong> SecurityContextFactory you have to include the <code>kikaha-hazelcast</code> module. See more details at  <strong><a href="doc:hazelcast.html">Hazelcast</a></strong> documentation.</p>
-  <p><strong>Note2:</strong> Both <em>SecurityContextFactory</em>s, <em>AuthenticationMechanism</em>s and <em>IdentityManager</em>s has to be <em>a managed class</em> in order to Kikaha load it correctly at the application startup. If you are not familiar with the <em>managed class</em> term, please take a look at the <strong><a href="doc:dependency-injection.html">Dependency Injection</a></strong> for more details.
-  [block:api-header]
-  {
-    "type": "basic",
-    "title": "Protecting resources"
-  }
-  [/block]
-  To define that some web resources will requires authentication, you could include an entry in <code>server.auth.rules</code> array on your configuration file. It will behaves like <a href="http://en.wikipedia.org/wiki/Access_control_list">ACL</a> where the first rule that matches the request will be applied. If no rule was matched, then the route will be executed as non-authenticated resource. Bellow we defined a rule the require authentication for any request made at "/protected/" resource and its sub-locations.
-  [block:code]
-  {
-    "codes": [
-      {
-        "code": "server:
-	auth:
-  	rules:
-      - pattern: \"/protected/*\"
-        identity-manager:
-          - \"custom\"
-        auth-mechanisms:
-          - \"basic\"
-        expected-roles:
-        exclude-patterns:
-",
-        "language": "yaml",
-        "name": "application.yml"
-      }
-    ]
-  }
-  [/block]
-  As you can note, there is some attributes we can define to the rule:</p>
-  <ul>
-  <li>pattern: the unique mandatory attribute, it defines which resources will require authentication</li>
-  <li>identity-manager: defines which Identity Manager will be used to match the sent credentials.</li>
-  <li>mechanisms: defines which Authentication Mechanisms will used to extract credentials.</li>
-  <li>expected-roles: (optional) which roles should the Identity Manager retrieves to authorize the access to resources protected by this rule.</li>
-  <li>exclude-patterns: (optional) is an array of patters that should ignored during the authorization/authentication process. There is cases where is easier to map a more generalist pattern and define which URLs should be unconsidered on the authentication/authorization process. It may be also useful when you have more than one authentication rule.</li>
-  </ul>
-</blockquote>
-<h2 id="configuringthefixeduserandpasswordidentitymanager">Configuring the Fixed User and Password Identity Manager</h2>
-<p>If you opt to use the <em>Fixed User and Password Identity Manager</em>, you can set the expected username, password and role at <code>server.auth.fixed-auth</code> entry of your configuration file. You can find the default values <a href="doc:configuring-the-server.html">here</a>.
-[block:code]
-{
-  "codes": [
-    {
-      "code": "server:
-	auth:
-		fixed-auth:
-      username: \"admin\"
-      password: \"admin\"
-      role:
-      	- \"admin\"",
-      "language": "yaml",
-      "name": "application.yml"
-    }
-  ]
-}
-[/block]</p>
-<p>[block:api-header]
-{
-  "type": "basic",
-  "title": "Configuring the Form Authentication Mechanism"
-}
-[/block]
-Consider the bellow configuration.
-[block:code]
-{
-  "codes": [
-    {
-      "code": "server:
-	auth:
+<p>Whenever you need to handle how to store or match a password you can use a Password Encoder to keep you credentials safe. Basically, out-of-box, there are two password encoders available:</p>
+<ul>
+<li>plain-text: Keep your password as is. This is the default one. Class: <code>kikaha.core.modules.security.PlainTextPasswordEncoder</code></li>
+<li>bcrypt: uses BCrypt to protect your password. Class: 'kikaha.bcrypt.BCryptPasswordEncoder'</li>
+</ul>
+<p>You can define which Password Encoder will be used on your application by simply pointing the configuration entry <code>server.auth.password-encoder</code> to one of above mentioned classes.</p>
+<pre><code class="yml language-yml">server:
+  auth:
+    password-encoder: kikaha.core.modules.security.PlainTextPasswordEncoder
+</code></pre>
+<h2 id="authenticationrules">Authentication Rules</h2>
+<p>In order to protect your resources and forces the authentication process you should include an entry in <code>server.auth.rules</code> array on your configuration file. It will behaves like <a href="http://en.wikipedia.org/wiki/Access_control_list">ACL</a> where the first rule that matches the request will be applied. If no rule was matched, then the route will be executed as non-authenticated resource. Bellow we defined a rule the require authentication for any request made at "/protected/" resource and its sub-locations.</p>
+<pre><code class="yml language-yml">server:
+  auth:
     rules:
-      - pattern: \"/protected/*\"
-        auth-'mechanisms:
-					- \"form\"
-        identity-manager:
-					- \"default\"
+      - pattern: "/protected/*"
+        identity-manager: ["custom"]
+        auth-mechanisms: ["basic"]
+        expected-roles: []
+        exclude-patterns: [ "*.ico","*.js" ]
+</code></pre>
+<p>As you can note, there is some attributes we can define for each rule:</p>
+<ul>
+<li>pattern: the unique mandatory attribute, it defines which resources will require authentication</li>
+<li>identity-manager: (optional) defines which Identity Manager will be used to match the sent credentials. If not define, the "default" one will be used.</li>
+<li>mechanisms: (optional) defines which Authentication Mechanisms will used to extract credentials. If not define, the "default" one will be used.</li>
+<li>expected-roles: (optional) which roles should the Identity Manager retrieves to authorize the access to resources protected by this rule. Empty value means no specific roles are actually required to execute this resource.</li>
+<li>exclude-patterns: (optional) is an array of patters that should ignored during the authorization/authentication process. There is cases where is easier to map a more generalist pattern and define which URLs should be unconsidered on the authentication/authorization process. It may be also useful when you have more than one authentication rule.</li>
+</ul>
+<p>If for some reason you have to repeat some exclusion-patterns on every rule you made, you rather define then at <code>server.auth.default-excluded-patterns</code>.</p>
+<p>Also, you can simplify your configuration file by overriding the 'default' <code>identity-manager</code> and <code>authentication-mechanism</code>. Bellow a more usual authentication rules should look like.</p>
+<pre><code class="yml language-yml">server:
+  auth:
+    # Using my custom
+    identity-manager: { default: sample.CustomIdentityManager }
+    default-excluded-patterns: ["*.ico","*.css","*.js","*.png","*.jpg"]
+    rules:
+      # Any logged in user will be able to enter most part of the system
+      - { pattern: "/*", auth-mechanisms: ["basic","form"], exclude-patterns: ["/api/admin/*"] }
+      # Only administrators are allowed to access /api/admin/*
+      - { pattern: "/api/admin/*", auth-mechanisms: ["basic"], expected-roles: ["ADMIN"] }
+</code></pre>
+<h2 id="sessionstore">Session Store</h2>
+<p><code>TODO</code></p>
+<h2 id="configuringthefixeduserandpasswordidentitymanager">Configuring the Fixed User and Password Identity Manager</h2>
+<p>If you opt to use the <em>Fixed User and Password Identity Manager</em>, you can set the expected username, password and role at <code>server.auth.fixed-auth</code> entry of your configuration file. You can find the default values <a href="doc:configuring-the-server.html">here</a>.</p>
+<pre><code class="yml language-yml">server:
+  auth:
+    fixed-auth:
+      username: "admin"
+      password: "admin"
+      role: "admin"
+</code></pre>
+<h2 id="configuringtheformauthenticationmechanism">Configuring the Form Authentication Mechanism</h2>
+<p>Consider the bellow configuration.</p>
+<pre><code class="yml language-yml">server:
+  auth:
+    rules:
+      - { pattern: "/protected/*", auth-'mechanisms: ["form"] }
 
     fixed-auth:
-      username: \"admin\"
-      password: \"1q2w3e\"
-      role: \"admin\"
+      username: "admin"
+      password: "1q2w3e"
+      role: "admin"
 
-    form-auth:
-      login-page: \"/auth/login.html\"
-      error-page: \"/auth/error.html\"
-      permition-denied-page: \"/auth/forbiden.html\"
-",
-      "language": "json",
-      "name": "application.yml"
-    }
-  ]
-}
-[/block]
-Here we've defined a set of configuration parameters related to Form Authentication. At the first block we which resources will be required authorization to access. Besides is impossible to set more than one Authentication Mechanism at once, we set only "form" to simplify our example.</p>
+    endpoints:
+      login-page: "/auth/login.html"
+      error-page: "/auth/error.html"
+      permission-denied-page: "/auth/forbiden.html"
+      callback-url: "/auth/callback"
+</code></pre>
+<p>Here we've defined a set of configuration parameters related to Form Authentication. At the first block we which resources will be required authorization to access. Besides is impossible to set more than one Authentication Mechanism at once, we set only "form" to simplify our example.</p>
 <p>As we defined the "default" identity-manager as our mechanism to validate the credentials sent by the HTTP client, we defined the username and password at the <code>fixed-auth</code> block. The last block, <code>form-auth</code> define which pages will be used during the authentication lifecycle:</p>
 <ul>
 <li><strong>login-page</strong>: the HTML page containing the form where users will be able to write its credentials</li>
-<li><strong>error-page</strong>: the HTML page that will notificaty that the logging have failed</li>
-<li><strong>permition-defined-page</strong>: the HTML page the will notify the user that the login was OK but he does not have permition (specific roles) to access the requested page.
-[block:code]
-{
-"codes": [
-{
-  "code": "<!-- http://www.avajava.com/tutorials/lessons/how-do-i-use-form-authentication-with-tomcat.html -->
-<form method=\"POST\" action=\"/protected/j_security_check\">
-<table>
-	<tr>
-		<td colspan=\"2\">Login to the Demo application:</td>
-	</tr>
-	<tr>
-		<td>Name:</td>
-		<td><input type=\"text\" name=\"j_username\" /></td>
-	</tr>
-	<tr>
-		<td>Password:</td>
-		<td><input type=\"password\" name=\"j_password\"/ ></td>
-	</tr>
-	<tr>
-		<td colspan=\"2\"><input type=\"submit\" value=\"Go\" /></td>
-	</tr>
-</table>
-</form>",
-  "language": "html",
-  "name": "login.html"
-}
-]
-}
-[/block]
-Above a sample <code>login.html</code>. Java developers will be at home here once it follows the same standard for form authentication defined by Servlet API:</li>
-<li>The action must be placed inside the <em>protected</em> path and end with <em>j<em>security</em>check</em></li>
+<li><strong>error-page</strong>: the HTML page that will notify the user the logging have failed</li>
+<li><strong>permission-defined-page</strong>: the HTML page the will notify the user the login was OK but he does not have permission (specific roles) to access the requested page.</li>
+</ul>
+<pre><code class="html language-html">&lt;!-- http://www.avajava.com/tutorials/lessons/how-do-i-use-form-authentication-with-tomcat.html --&gt;
+&lt;form method="POST" action="/protected/j_security_check"&gt;
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;td colspan="2"&gt;Login to the Demo application:&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Name:&lt;/td&gt;
+    &lt;td&gt;&lt;input type="text" name="j_username" /&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Password:&lt;/td&gt;
+    &lt;td&gt;&lt;input type="password" name="j_password"/ &gt;&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td colspan="2"&gt;&lt;input type="submit" value="Go" /&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;/form&gt;
+</code></pre>
+<p>Above a sample <code>login.html</code>. Java developers will be at home here once it follows the same standard for form authentication defined by Servlet API:</p>
+<ul>
+<li>The action must match the callback URL above defined</li>
 <li>The username field must be named <em>j_username</em> </li>
 <li>The password field must be named <em>j_password</em>.</li>
 </ul>
@@ -272,6 +239,7 @@ Above a sample <code>login.html</code>. Java developers will be at home here onc
 <a href="Rocker-Templates.html">Rocker Templates</a>
 <a href="BCrypt.html">BCrypt</a></p>
 <p>CLOUD MODULES
+<a href="Overview-of-Cloud-Module.html">Overview of Cloud Modules</a>
 <a href="Consul.io.html">Consul.io</a>
 <a href="Codahale-Metrics.html">Codahale's Metrics</a>
 <a href="Auth0.html">Auth0 Single Sign-On</a>
