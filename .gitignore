@@ -1,0 +1,15 @@
+target
+output
+faces-defaultConfig.xml
+.classpath
+.project
+.metadata
+.settings
+.DS_Store
+.cache
+.factorypath
+.idea
+*.iml
+pom.xml.*
+derby.log
+unit-test.db
