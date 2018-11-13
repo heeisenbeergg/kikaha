@@ -1,6 +1,7 @@
 # Kikaha
 [![Stable Version](https://img.shields.io/badge/stable%20version-2.1.7.Final-green.svg?style=flat-square)](https://github.com/Skullabs/kikaha/releases)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.skullabs.kikaha/kikaha-parent/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/io.skullabs.kikaha/kikaha-parent)
+[ ![Codeship Status for Skullabs/kikaha](https://app.codeship.com/projects/3e90ba20-7994-0132-52d3-5ad3a80e87e7/status?branch=version-3.0.0)](https://app.codeship.com/projects/55927)
 
 Kikaha is a micro container writen over the fast Undertow core. It was developed with two core ideas in mind:
 - provides a lightweight micro container (written over the powerful undertow core), as alternative environment to to run web applications
