@@ -1,0 +1,3 @@
+server:
+  name: "Test"
+  defaults: true

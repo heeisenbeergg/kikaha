@@ -1,0 +1,33 @@
+modelVersion: 4.0.0
+
+parent:
+  groupId: io.skullabs.boilerplates
+  artifactId: java-8
+  version: 1.0.0
+
+artifactId: kikaha-parent
+groupId: io.skullabs.kikaha
+version: 3.0.0-SNAPSHOT
+packaging: pom
+
+properties:
+  version.lombok: "1.18.4"
+  version.compile-testing: "0.10"
+  version.class-generator: "0.2.0.Final"
+  version.injector: "0.2.0.Final"
+  version.snakeyaml: "1.21"
+
+modules:
+- "kikaha-config"
+
+dependencyManagement:
+ dependencies:
+  - { groupId: io.skullabs.kikaha, version: "${project.version}", artifactId: kikaha-config }
+  - { groupId: io.skullabs.injector, version: "${version.injector}", artifactId: injector-core }
+  - { groupId: io.skullabs.injector, version: "${version.injector}", artifactId: injector-processor, scope: provided }
+  - { groupId: org.yaml, version: "${version.snakeyaml}", artifactId: snakeyaml }
+
+dependencies:
+- { groupId: io.skullabs.injector, artifactId: injector-core }
+- { groupId: io.skullabs.injector, artifactId: injector-processor }
+
