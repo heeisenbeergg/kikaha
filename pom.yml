@@ -11,11 +11,16 @@ version: 3.0.0-SNAPSHOT
 packaging: pom
 
 properties:
+  # dependency versions
   version.lombok: "1.18.4"
+  version.mockito: "2.23.0"
   version.compile-testing: "0.10"
   version.class-generator: "0.2.0.Final"
   version.injector: "0.2.0.Final"
   version.snakeyaml: "1.21"
+
+  # plugin versions
+  version.compiler.plugin: "3.8.0"
 
 modules:
 - "kikaha-config"
