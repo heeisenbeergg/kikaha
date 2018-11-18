@@ -18,21 +18,26 @@ properties:
   version.class-generator: "0.2.0.Final"
   version.injector: "0.2.0.Final"
   version.snakeyaml: "1.21"
+  version.undertow: "2.0.15.Final"
 
   # plugin versions
   version.compiler.plugin: "3.8.0"
 
 modules:
 - "kikaha-config"
+- "kikaha-undertow"
 
 dependencyManagement:
  dependencies:
   - { groupId: io.skullabs.kikaha, version: "${project.version}", artifactId: kikaha-config }
+  - { groupId: io.skullabs.kikaha, version: "${project.version}", artifactId: kikaha-core }
   - { groupId: io.skullabs.injector, version: "${version.injector}", artifactId: injector-core }
   - { groupId: io.skullabs.injector, version: "${version.injector}", artifactId: injector-processor, scope: provided }
   - { groupId: org.yaml, version: "${version.snakeyaml}", artifactId: snakeyaml }
+  - { groupId: io.undertow, version: "${version.undertow}", artifactId: undertow-core }
 
 dependencies:
 - { groupId: io.skullabs.injector, artifactId: injector-core }
 - { groupId: io.skullabs.injector, artifactId: injector-processor }
+- { groupId: org.mockito, artifactId: mockito-core }
 

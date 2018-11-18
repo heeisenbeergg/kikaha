@@ -6,8 +6,10 @@ parent:
   version: 3.0.0-SNAPSHOT
   relativePath: "../pom.yml"
 
-artifactId: kikaha-config
+artifactId: kikaha-undertow
 packaging: jar
 
 dependencies:
-- { groupId: org.yaml, artifactId: snakeyaml }
+- { groupId: io.skullabs.kikaha, artifactId: kikaha-config }
+- { groupId: io.undertow, artifactId: undertow-core }
+
