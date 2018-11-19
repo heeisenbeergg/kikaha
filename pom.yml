@@ -19,6 +19,7 @@ properties:
   version.injector: "0.2.0.Final"
   version.snakeyaml: "1.21"
   version.undertow: "2.0.15.Final"
+  version.okhttp: "3.12.0"
 
   # plugin versions
   version.compiler.plugin: "3.8.0"
@@ -35,6 +36,7 @@ dependencyManagement:
   - { groupId: io.skullabs.injector, version: "${version.injector}", artifactId: injector-processor, scope: provided }
   - { groupId: org.yaml, version: "${version.snakeyaml}", artifactId: snakeyaml }
   - { groupId: io.undertow, version: "${version.undertow}", artifactId: undertow-core }
+  - { groupId: com.squareup.okhttp3, artifactId: okhttp, version: "${version.okhttp}", scope: test }
 
 dependencies:
 - { groupId: io.skullabs.injector, artifactId: injector-core }

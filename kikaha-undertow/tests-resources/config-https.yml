@@ -1,0 +1,7 @@
+undertow:
+  https:
+    enabled: true
+    port: 10000
+    host: "10.0.0.2"
+    keystore: "tests-resources/server.keystore"
+    keystore-password: "password"

@@ -2,6 +2,7 @@ package kikaha.config;
 
 import lombok.experimental.UtilityClass;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -12,6 +13,10 @@ import java.util.Enumeration;
  */
 @UtilityClass
 public class ConfigLoader {
+
+	public Config load( String fileName ) throws IOException {
+		return MergeableConfig.create().load( new File(fileName) );
+	}
 
 	public MergeableConfig loadDefaults() {
 		try {

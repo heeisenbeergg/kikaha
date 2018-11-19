@@ -1,0 +1,5 @@
+undertow:
+  http:
+    enabled: true
+    port: 9999
+    host: "10.0.0.1"

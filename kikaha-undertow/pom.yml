@@ -12,4 +12,4 @@ packaging: jar
 dependencies:
 - { groupId: io.skullabs.kikaha, artifactId: kikaha-config }
 - { groupId: io.undertow, artifactId: undertow-core }
-
+- { groupId: com.squareup.okhttp3, artifactId: okhttp }

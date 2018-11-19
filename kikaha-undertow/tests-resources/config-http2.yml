@@ -1,0 +1,2 @@
+undertow:
+  http2: { enabled: true }
