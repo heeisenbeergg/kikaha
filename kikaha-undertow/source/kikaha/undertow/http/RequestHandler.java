@@ -24,7 +24,7 @@ public interface RequestHandler {
      * @throws IOException
      */
     default RequestHandler andThen( RequestHandler next ) throws IOException {
-        return new AndNext( this, next );
+        return AndNext.wrap( this, next );
     }
 
     /**
@@ -44,7 +44,7 @@ class AndNext implements RequestHandler {
 
     @Override
     public void handleRequest( HttpServerExchange exchange, RequestHandler next ) {
-        val nextOne = AndNext.wrap( this, next );
+        val nextOne = AndNext.wrap( this.next, next );
         this.handler.handleRequest( exchange, nextOne );
     }
 
