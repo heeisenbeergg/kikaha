@@ -6,8 +6,8 @@ import lombok.NonNull;
 import lombok.val;
 import org.xnio.Option;
 
-import javax.net.ssl.SSLContext;
 import java.io.IOException;
+
 import static io.undertow.UndertowOptions.*;
 
 /**
