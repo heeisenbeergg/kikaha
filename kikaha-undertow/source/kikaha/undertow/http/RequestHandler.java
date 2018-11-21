@@ -4,6 +4,7 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.val;
 
 import java.io.IOException;
 
@@ -42,8 +43,13 @@ class AndNext implements RequestHandler {
     @NonNull final RequestHandler next;
 
     @Override
-    public void handleRequest( HttpServerExchange exchange, RequestHandler ignored ) {
-        this.handler.handleRequest( exchange, this.next );
+    public void handleRequest( HttpServerExchange exchange, RequestHandler next ) {
+        val nextOne = AndNext.wrap( this, next );
+        this.handler.handleRequest( exchange, nextOne );
+    }
+
+    public static RequestHandler wrap( RequestHandler current, RequestHandler next ) {
+        return next != null ? new AndNext( current, next ) : current;
     }
 }
 
