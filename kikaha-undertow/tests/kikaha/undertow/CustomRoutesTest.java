@@ -1,8 +1,7 @@
-package kikaha.undertow.http;
+package kikaha.undertow;
 
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Methods;
-import kikaha.undertow.HttpServerExchangeStub;
 import lombok.Getter;
 import lombok.val;
 import org.junit.jupiter.api.BeforeEach;

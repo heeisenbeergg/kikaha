@@ -1,4 +1,4 @@
-package kikaha.undertow.http;
+package kikaha.undertow;
 
 /**
  * Defines how a deserializer should behave in order to proper transform

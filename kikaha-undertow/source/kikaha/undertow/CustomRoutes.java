@@ -1,4 +1,4 @@
-package kikaha.undertow.http;
+package kikaha.undertow;
 
 import injector.AllOf;
 import injector.Singleton;
@@ -6,7 +6,6 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.util.AttachmentKey;
 import io.undertow.util.HttpString;
 import io.undertow.util.PathTemplateMatcher;
-import io.undertow.util.PathTemplateMatcher.PathMatchResult;
 import lombok.NoArgsConstructor;
 import lombok.val;
 

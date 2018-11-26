@@ -1,8 +1,7 @@
-package kikaha.undertow.http;
+package kikaha.undertow;
 
 import io.undertow.Undertow;
 import kikaha.config.ConfigLoader;
-import kikaha.undertow.Exposed;
 import lombok.val;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

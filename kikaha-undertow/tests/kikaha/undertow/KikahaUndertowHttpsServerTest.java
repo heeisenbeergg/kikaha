@@ -1,6 +1,5 @@
 package kikaha.undertow;
 
-import kikaha.undertow.http.UndertowServer;
 import lombok.SneakyThrows;
 import lombok.val;
 import okhttp3.OkHttpClient;

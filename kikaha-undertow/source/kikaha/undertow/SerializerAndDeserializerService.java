@@ -1,4 +1,4 @@
-package kikaha.undertow.http;
+package kikaha.undertow;
 
 import injector.AllOf;
 import injector.Singleton;

@@ -1,4 +1,4 @@
-package kikaha.undertow.http;
+package kikaha.undertow;
 
 public interface WebRouteHandler extends RequestHandler {
 

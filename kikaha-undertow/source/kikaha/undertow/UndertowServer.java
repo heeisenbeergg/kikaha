@@ -1,4 +1,4 @@
-package kikaha.undertow.http;
+package kikaha.undertow;
 
 import io.undertow.Undertow;
 import kikaha.config.Config;
