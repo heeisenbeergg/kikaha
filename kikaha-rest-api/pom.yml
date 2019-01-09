@@ -1,0 +1,13 @@
+modelVersion: 4.0.0
+
+parent:
+  groupId: io.skullabs.kikaha
+  artifactId: kikaha-parent
+  version: 3.0.0-SNAPSHOT
+  relativePath: "../pom.yml"
+
+artifactId: kikaha-rest-api
+packaging: jar
+
+#dependencies:
+#- { groupId: org.yaml, artifactId: snakeyaml }
