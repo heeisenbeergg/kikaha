@@ -15,4 +15,6 @@ import java.lang.annotation.Target;
 public @interface PathParam {
 
     String value();
+
+    boolean required() default false;
 }
