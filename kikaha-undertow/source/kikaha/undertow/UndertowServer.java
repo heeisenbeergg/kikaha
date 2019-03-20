@@ -6,7 +6,7 @@ import lombok.NonNull;
 import lombok.val;
 import org.xnio.Option;
 
-import java.io.IOException;
+import java.io.*;
 
 import static io.undertow.UndertowOptions.*;
 
@@ -20,6 +20,7 @@ public class UndertowServer {
 
     private boolean started = false;
     private Undertow server;
+    private RequestHandler requestHandler;
 
     public static UndertowServer usingDefaults(){
         return new UndertowServer(
@@ -87,6 +88,7 @@ public class UndertowServer {
             builder.addHttpsListener(port, host, sslContext);
             return this;
         } catch ( IOException cause ) {
+            System.out.println( keyStore + " exists? " + new File(keyStore).exists() );
             throw new RuntimeException( cause );
         }
     }
@@ -128,13 +130,18 @@ public class UndertowServer {
 
     public UndertowServer requestHandler( RequestHandler handler ) {
         ensureIsNotStarted();
-        builder.setHandler( handler.asHttpHandler() );
+        this.requestHandler = handler;
         return this;
+    }
+
+    public RequestHandler getRequestHandler(){
+        ensureIsNotStarted();
+        return requestHandler;
     }
 
     public UndertowServer start(){
         ensureIsNotStarted();
-        server = builder.build();
+        server = builder.setHandler( requestHandler.asHttpHandler() ).build();
         Runtime.getRuntime().addShutdownHook( new Thread( this::stop ) );
         server.start();
         started = true;
