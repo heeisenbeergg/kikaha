@@ -2,7 +2,7 @@
 Provide a simple, but versatile, way to map Rest endpoints in a RPC fashion.
 
 ## Tracking issues
-- **Pull Request**: -
+- **Pull Request**: [#262](https://github.com/Skullabs/kikaha/pull/262)
 - **Issue**: -
 
 ## Motivation
@@ -59,7 +59,7 @@ class App {
           .route( Methods.POST, "/users/:city", api::includeUser )
         ;
 
-        UndertowServer server = UndertowServer.usingDefaults()
+        UndertowServer.usingDefaults()
           .listenHttpRequests( 8080 )
           .requestHandler( router )
           .start();
@@ -71,17 +71,18 @@ class Api {
   final Map<String,List<User>> users = new HashMap<>();
 
   void filterUsers( FilterUserRequest filter, Response response ) {
-    val found = users.get( filter.city ).stream()
-      .filter( user -> user.name.contains( filter.name ) )
-      .collect(Collectors.toList());
+      val found = users.get( filter.city ).stream()
+        .filter( user -> user.name.contains( filter.name ) )
+        .collect(Collectors.toList());
 
-    response.send( 200, ContentTypes.JSON, found );
+      response.send( 200, ContentTypes.JSON, found );
   }
   
-  void includeUser( IncludeUser request, Response response ) {
-    users.computeIfAbsent( request.city, k -> new ArrayList<>() )
+  void includeUser( IncludeUser request, Response response )
+  {
+      users.computeIfAbsent( request.city, k -> new ArrayList<>() )
          .put( request.city, request.user );
-    response.send( 201 );
+      response.send( 201 );
   }
 }
 
