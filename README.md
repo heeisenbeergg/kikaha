@@ -8,7 +8,7 @@ Kikaha is a micro container writen over the fast Undertow core. It was developed
 - provide a set of undertow extensions to structure and initialize your application without writing a bunch of bootstraping lines of code, making easier to develop embedded applications
 
 ## Version 3.0
-You are seeing the development branch of the 3.0.0 version. It will be an interesting journey of 6 months of colaborative developement. Please, take a look into the opened issues or keep track of our evolution in the [3.0.0 project](https://github.com/Skullabs/kikaha/projects/3). We would appreciate any help, thoughts, suggestions and critics (but please be respectiful).
+You are seeing the initial development branch of the 3.0.0 version. It will be an interesting journey on the next few months of colaborative developement. The development is on a slow pace as we expect to use the news Undertow version (based on Netty) in order to proceed. Please, take a look into the opened issues or keep track of our evolution in the [3.0.0 project](https://github.com/Skullabs/kikaha/projects/3). We would appreciate any help, thoughts, suggestions and critics (but please be respectiful).
 
 If you are look for the stable version, please take a look into the [2.1.x branch](https://github.com/Skullabs/kikaha/tree/version-2.1.x).
 
