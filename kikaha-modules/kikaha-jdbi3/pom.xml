@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.skullabs.kikaha</groupId>
+        <version>2.1.10.Final</version>
+        <artifactId>kikaha-project</artifactId>
+    </parent>
+
+    <artifactId>kikaha-jdbi3</artifactId>
+    <version>0.4.0</version>
+    <packaging>jar</packaging>
+    <name>${project.artifactId}</name>
+    <url>https://github.com/Ibratan/kikaha-jdbi3</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>miere</id>
+            <name>Miere Liniel Teixeira</name>
+            <email>miere.teixeira@gmail.com</email>
+        </developer>
+        <developer>
+            <id>ronei</id>
+            <name>Ronei Vinicius Gebert</name>
+            <email>ronei_vinicius@hotmail.com</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:Ibratan/kikaha-jdbi3.git</connection>
+        <developerConnection>scm:git:git@github.com:Ibratan/kikaha-jdbi3.git</developerConnection>
+        <url>scm:git:git@github.com:Ibratan/kikaha-jdbi3.git</url>
+    </scm>
+
+    <properties>
+        <!-- dependencies version configuration -->
+        <version.jdbi>3.14.4</version.jdbi>
+    </properties>
+
+    <dependencies>
+        <!-- kikaha-dependencies -->
+        <dependency>
+            <groupId>io.skullabs.kikaha</groupId>
+            <artifactId>kikaha-injection</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.skullabs.kikaha</groupId>
+            <artifactId>kikaha-db</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.skullabs.kikaha</groupId>
+            <artifactId>kikaha-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jdbi</groupId>
+            <artifactId>jdbi3-core</artifactId>
+            <version>${version.jdbi}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jdbi</groupId>
+            <artifactId>jdbi3-sqlobject</artifactId>
+            <version>${version.jdbi}</version>
+        </dependency>
+        <!-- test dependencies -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.4.193</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- /kikaha-dependencies -->
+    </dependencies>
+
+</project>

@@ -1,0 +1,30 @@
+server:
+  datasources:
+    default:
+      jdbc-url: "jdbc:mysql://databaseHostName/databaseName"
+      username: "username"
+      password: "password"
+#      log-query-execution-longer-than-ms: 50
+#      log-stacktrace-for-long-query-execution: false
+#      pool-max-size: 10
+#      pool-initial-size: 1
+#      pool-fair: true
+#      pool-enable-connection-tracking: false
+#      connection-timeout-in-ms: 30000
+#      login-timeout-in-seconds: 10
+#      acquire-retry-delay-in-ms: 1000
+#      acquire-retry-attempt: 3
+#      connection-idle-limit-in-seconds: 15
+#      validate-timeout-in-seconds: 3
+#      test-connection-query: "isValid"
+#      log-large-resultset: 500
+#      log-stacktrace-for-large-resultset: false
+#      log-connection-longer-than-ms: 3000
+#      clear-sql-warnings: false
+#      reset-defaults-after-use: false
+#      default-auto-commit: true
+#      default-read-only: false
+#      statement-cache-max-size: 0
+#      pool-reducer-class: "org.vibur.dbcp.pool.PoolReducer"
+#      reducer-time-interval-in-seconds: 60
+#      reducer-samples: 20
