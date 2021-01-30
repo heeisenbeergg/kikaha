@@ -12,7 +12,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 public class ZipFileWriter {
 
 	private static final String WINDOWS_PATH_SEPARATOR = "\\";
-	private static final String PREFIX_WINDOWS_PATH = "c:" + WINDOWS_PATH_SEPARATOR;
+  private static final String REGEX_PREFIX_WINDOWS_PATH = "^[a-zA-Z]:\\\\.*";
 
 	final List<String> prefixesToStripOutFromName = new ArrayList<>();
 	final ZipOutputStream output;
@@ -86,7 +86,7 @@ public class ZipFileWriter {
 	}
 
 	private boolean isWindowsPath(final String path) {
-		return path.startsWith(PREFIX_WINDOWS_PATH);
+		return path.matches(REGEX_PREFIX_WINDOWS_PATH);
 	}
 
 	private String sanitizePathToWindows(String path) {
